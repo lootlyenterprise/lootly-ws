@@ -1,0 +1,2603 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Lootly — Toys & Collectibles</title>
+<!-- EmailJS SDK -->
+<script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
+<script>emailjs.init('pozsG25yqThEA4JbK');</script>
+<link rel="preconnect" href="https://firestore.googleapis.com" crossorigin>
+<link rel="preconnect" href="https://www.gstatic.com" crossorigin>
+<link rel="preconnect" href="https://identitytoolkit.googleapis.com" crossorigin>
+<link rel="dns-prefetch" href="https://firebaseapp.com">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --black: #0a0a0a;
+  --dark: #111113;
+  --card: #18181b;
+  --border: #2a2a2e;
+  --accent: #ff3c00;
+  --gold: #f5c842;
+  --white: #f5f5f0;
+  --muted: #888890;
+  /* Light mode (storefront) */
+  --bg: #ffffff;
+  --fg: #111113;
+  --fg-muted: #555560;
+  --card-light: #f7f7f8;
+  --border-light: #e4e4e8;
+  --font-display: 'Bebas Neue', sans-serif;
+  --font-body: 'Outfit', sans-serif;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html { scroll-behavior: smooth; }
+body { font-family: var(--font-body); background: var(--bg); color: var(--fg); min-height: 100vh; }
+
+body::before {
+  content: ''; position: fixed; inset: 0; z-index: 9999;
+  pointer-events: none; opacity: 0.03;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+
+.page { display: none; }
+.page.active { display: block; }
+.hidden { display: none !important; }
+
+/* NAV */
+.nav {
+  position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+  height: 128px; display: flex; align-items: center; padding: 0 48px;
+  border-bottom: 1px solid rgba(255,255,255,0.06);
+  background: rgba(10,10,10,0.95); backdrop-filter: blur(16px);
+}
+.nav-logo { display: flex; align-items: center; gap: 14px; cursor: pointer; flex-shrink: 0; border: none; background: none; }
+.nav-logo-img { height: 100px; width: auto; max-width: 260px; object-fit: contain; display: block; }
+.nav-logo-text { font-family: var(--font-display); font-size: 48px; letter-spacing: 0.04em; color: var(--white); line-height: 1; }
+.nav-logo-dot { color: var(--accent); }
+.nav-links { display: flex; align-items: center; gap: 6px; margin-left: 48px; }
+.nav-link { font-size: 14px; font-weight: 600; letter-spacing: 0.05em; text-transform: uppercase; color: var(--muted); padding: 10px 18px; border-radius: 8px; cursor: pointer; border: none; background: none; transition: color 0.2s, background 0.2s; }
+.nav-link:hover, .nav-link.active { color: var(--white); background: rgba(255,255,255,0.08); }
+.nav-spacer { flex: 1; }
+.nav-admin-btn { font-size: 13px; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; color: var(--muted); padding: 9px 18px; border-radius: 8px; border: 1px solid var(--border); background: none; cursor: pointer; transition: all 0.2s; }
+.nav-admin-btn:hover { color: var(--white); border-color: rgba(255,255,255,0.2); }
+.nav-hamburger { display: none; padding: 8px; background: none; border: none; cursor: pointer; color: var(--white); }
+.admin-badge { font-size: 11px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; padding: 3px 10px; border-radius: 4px; background: var(--accent); color: #fff; margin-left: 12px; }
+.exit-btn { font-size: 13px; font-weight: 600; letter-spacing: 0.05em; text-transform: uppercase; color: var(--muted); padding: 9px 18px; border-radius: 8px; border: 1px solid var(--border); background: none; cursor: pointer; transition: all 0.2s; }
+.exit-btn:hover { color: var(--white); border-color: rgba(255,255,255,0.3); }
+
+@media (max-width: 768px) {
+  .nav-links { display: none; }
+  .nav-hamburger { display: flex; }
+  .nav { padding: 0 20px; height: 88px; }
+}
+.mobile-menu { display: none; position: fixed; top: 128px; left: 0; right: 0; z-index: 99; background: var(--dark); border-bottom: 1px solid var(--border); padding: 12px 20px; flex-direction: column; gap: 4px; }
+.mobile-menu.open { display: flex; }
+.mobile-link { font-size: 14px; font-weight: 500; color: var(--muted); padding: 10px 14px; border-radius: 6px; cursor: pointer; border: none; background: none; text-align: left; width: 100%; transition: all 0.2s; }
+.mobile-link:hover { color: var(--white); background: rgba(255,255,255,0.06); }
+
+/* BUTTONS */
+.btn { display: inline-flex; align-items: center; gap: 8px; font-family: var(--font-body); font-size: 13px; font-weight: 600; letter-spacing: 0.05em; text-transform: uppercase; padding: 12px 24px; border-radius: 8px; border: none; cursor: pointer; transition: all 0.2s; text-decoration: none; }
+.btn-red { background: var(--accent); color: #fff; }
+.btn-red:hover { background: #ff5a20; transform: translateY(-1px); box-shadow: 0 8px 24px rgba(255,60,0,0.35); }
+.btn-outline { background: transparent; color: var(--white); border: 1px solid rgba(255,255,255,0.2); }
+.btn-outline:hover { border-color: rgba(255,255,255,0.5); background: rgba(255,255,255,0.05); }
+.btn-dark { background: rgba(255,255,255,0.08); color: var(--white); border: 1px solid var(--border); }
+.btn-dark:hover { background: rgba(255,255,255,0.12); }
+.btn-sm { padding: 8px 16px; font-size: 11px; }
+.btn-danger { background: #991b1b; color: #fff; }
+.btn-danger:hover { background: #dc2626; }
+
+/* PRODUCT CARD */
+.product-card { display: block; text-decoration: none; background: #fff; border: 1px solid var(--border-light); border-radius: 12px; overflow: hidden; cursor: pointer; transition: transform 0.3s cubic-bezier(0.34,1.56,0.64,1), border-color 0.3s, box-shadow 0.3s; }
+.product-card:hover { transform: translateY(-6px); border-color: rgba(255,60,0,0.35); box-shadow: 0 20px 40px rgba(0,0,0,0.12), 0 0 0 1px rgba(255,60,0,0.1); }
+.product-card-img { position: relative; overflow: hidden; aspect-ratio: 1/1; background: #f0f0f2; }
+.product-card-img img { width: 100%; height: 100%; object-fit: cover; transition: transform 0.5s ease; }
+.product-card:hover .product-card-img img { transform: scale(1.06); }
+.product-card-img-overlay { position: absolute; inset: 0; background: linear-gradient(to top, rgba(0,0,0,0.45) 0%, transparent 50%); }
+.product-card-badges { position: absolute; top: 10px; left: 10px; display: flex; flex-direction: column; gap: 4px; }
+.tag-badge { font-size: 10px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; padding: 3px 8px; border-radius: 4px; display: inline-block; }
+.tag-new { background: var(--accent); color: #fff; }
+.tag-sale { background: var(--gold); color: #000; }
+.tag-hot { background: #7c3aed; color: #fff; }
+.product-card-body { padding: 14px 16px 18px; background: #fff; }
+.product-card-cat { font-size: 10px; font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase; color: var(--fg-muted); margin-bottom: 6px; }
+.product-card-name { font-size: 15px; font-weight: 600; color: var(--fg); line-height: 1.3; margin-bottom: 10px; }
+.product-card-price { font-size: 17px; font-weight: 700; color: var(--accent); }
+
+/* STATUS PILLS */
+.status-pill { font-size: 10px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; padding: 2px 8px; border-radius: 4px; }
+.status-published { background: rgba(34,197,94,0.15); color: #4ade80; border: 1px solid rgba(34,197,94,0.25); }
+.status-draft { background: rgba(255,140,0,0.12); color: #fb923c; border: 1px solid rgba(255,140,0,0.2); }
+
+/* TOAST */
+.toast { position: fixed; bottom: 28px; left: 50%; transform: translateX(-50%) translateY(100px); z-index: 9000; background: var(--card); border: 1px solid var(--border); border-left: 3px solid var(--accent); padding: 14px 22px; border-radius: 10px; font-size: 14px; font-weight: 500; color: var(--white); display: flex; align-items: center; gap: 10px; box-shadow: 0 16px 48px rgba(0,0,0,0.6); transition: transform 0.4s cubic-bezier(0.34,1.56,0.64,1); white-space: nowrap; }
+.toast.show { transform: translateX(-50%) translateY(0); }
+
+/* MODAL */
+.modal-overlay { position: fixed; inset: 0; z-index: 500; background: rgba(0,0,0,0.75); backdrop-filter: blur(6px); display: flex; align-items: center; justify-content: center; padding: 20px; opacity: 0; pointer-events: none; transition: opacity 0.25s; }
+.modal-overlay.open { opacity: 1; pointer-events: all; }
+.modal-box { background: var(--dark); border: 1px solid var(--border); border-radius: 16px; width: 100%; max-width: 560px; max-height: 90vh; overflow-y: auto; padding: 32px; transform: translateY(20px) scale(0.97); transition: transform 0.3s cubic-bezier(0.34,1.56,0.64,1); }
+.modal-overlay.open .modal-box { transform: translateY(0) scale(1); }
+.modal-title { font-family: var(--font-display); font-size: 28px; letter-spacing: 0.04em; color: var(--white); }
+.modal-close { width: 32px; height: 32px; border-radius: 8px; background: rgba(255,255,255,0.08); border: none; cursor: pointer; color: var(--muted); font-size: 16px; display: flex; align-items: center; justify-content: center; transition: all 0.2s; }
+.modal-close:hover { background: rgba(255,255,255,0.14); color: var(--white); }
+
+/* FORM */
+.form-group { margin-bottom: 18px; }
+.form-label { display: block; font-size: 12px; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; color: var(--muted); margin-bottom: 8px; }
+.form-input, .form-select, .form-textarea { width: 100%; padding: 11px 14px; background: var(--black); border: 1px solid var(--border); border-radius: 8px; font-family: var(--font-body); font-size: 14px; color: var(--white); outline: none; transition: border-color 0.2s, box-shadow 0.2s; }
+.form-input:focus, .form-select:focus, .form-textarea:focus { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(255,60,0,0.15); }
+.form-select option { background: var(--dark); }
+.form-textarea { resize: vertical; min-height: 80px; }
+.form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+.form-hint { font-size: 11px; color: var(--muted); margin-top: 5px; }
+.form-radio-group { display: flex; gap: 16px; margin-top: 6px; }
+.form-radio-label { display: flex; align-items: center; gap: 8px; cursor: pointer; font-size: 14px; color: var(--white); }
+.form-radio-label input { accent-color: var(--accent); }
+.divider { height: 1px; background: var(--border); margin: 20px 0; }
+
+/* ADMIN LAYOUT */
+.admin-layout { display: flex; min-height: 100vh; padding-top: 128px; }
+.admin-sidebar { width: 220px; flex-shrink: 0; background: var(--dark); border-right: 1px solid var(--border); padding: 20px 12px; display: flex; flex-direction: column; gap: 3px; position: sticky; top: 128px; height: calc(100vh - 128px); overflow-y: auto; }
+.admin-sidebar-label { font-size: 10px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); padding: 4px 12px; margin: 10px 0 4px; }
+.admin-sidebar-label:first-child { margin-top: 0; }
+.sidebar-item { display: flex; align-items: center; gap: 10px; padding: 9px 12px; border-radius: 8px; font-size: 14px; font-weight: 500; color: var(--muted); cursor: pointer; border: none; background: none; text-align: left; width: 100%; transition: all 0.2s; }
+.sidebar-item:hover { color: var(--white); background: rgba(255,255,255,0.05); }
+.sidebar-item.active { color: var(--white); background: rgba(255,60,0,0.15); }
+.admin-main { flex: 1; min-width: 0; padding: 32px; background: var(--black); }
+.admin-tab { display: none; }
+.admin-tab.active { display: block; }
+.admin-tab-title { font-family: var(--font-display); font-size: 32px; letter-spacing: 0.04em; color: var(--white); margin-bottom: 4px; }
+.admin-tab-sub { font-size: 14px; color: var(--muted); margin-bottom: 28px; }
+
+/* STAT GRID */
+.stat-grid { display: grid; grid-template-columns: repeat(4,1fr); gap: 16px; margin-bottom: 28px; }
+.stat-card { background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 20px; }
+.stat-label { font-size: 11px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); margin-bottom: 8px; }
+.stat-value { font-family: var(--font-display); font-size: 40px; letter-spacing: 0.02em; line-height: 1; }
+.stat-red { color: var(--accent); }
+.stat-green { color: #4ade80; }
+.stat-gold { color: var(--gold); }
+@media (max-width: 900px) { .stat-grid { grid-template-columns: repeat(2,1fr); } }
+
+/* ADMIN TABLE */
+.table-wrap { background: var(--card); border: 1px solid var(--border); border-radius: 12px; overflow: hidden; }
+.admin-table { width: 100%; border-collapse: collapse; }
+.admin-table th { text-align: left; padding: 12px 16px; font-size: 10px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); background: rgba(255,255,255,0.02); border-bottom: 1px solid var(--border); }
+.admin-table td { padding: 14px 16px; border-bottom: 1px solid rgba(255,255,255,0.04); font-size: 13px; }
+.admin-table tbody tr:last-child td { border-bottom: none; }
+.admin-table tbody tr:hover td { background: rgba(255,255,255,0.02); }
+.table-thumb { width: 40px; height: 40px; border-radius: 8px; object-fit: cover; border: 1px solid var(--border); background: var(--dark); flex-shrink: 0; }
+.table-actions { display: flex; gap: 6px; flex-wrap: wrap; }
+.tbl-btn { font-size: 11px; font-weight: 600; letter-spacing: 0.04em; text-transform: uppercase; padding: 5px 10px; border-radius: 5px; border: 1px solid var(--border); background: none; color: var(--muted); cursor: pointer; transition: all 0.2s; }
+.tbl-btn:hover { color: var(--white); border-color: rgba(255,255,255,0.25); background: rgba(255,255,255,0.05); }
+.tbl-btn.danger { color: #f87171; }
+.tbl-btn.danger:hover { border-color: #f87171; background: rgba(248,113,113,0.08); }
+.empty-state { text-align: center; padding: 60px 20px; color: var(--muted); }
+.empty-state-icon { font-size: 40px; margin-bottom: 16px; }
+.empty-state-title { font-family: var(--font-display); font-size: 24px; color: var(--white); letter-spacing: 0.03em; margin-bottom: 8px; }
+.empty-state-sub { font-size: 14px; margin-bottom: 20px; }
+
+/* FILTER BAR */
+.filter-bar { background: var(--card); border: 1px solid var(--border); border-radius: 10px; padding: 14px 16px; margin-bottom: 16px; display: flex; gap: 12px; align-items: center; flex-wrap: wrap; }
+.search-wrap { position: relative; flex: 1; min-width: 180px; }
+.search-input { width: 100%; padding: 9px 36px 9px 14px; background: #fff; border: 1px solid var(--border-light); border-radius: 8px; font-family: var(--font-body); font-size: 14px; color: var(--fg); outline: none; transition: border-color 0.2s; }
+.search-input:focus { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(255,60,0,0.08); }
+.search-icon { position: absolute; right: 12px; top: 50%; transform: translateY(-50%); color: var(--fg-muted); pointer-events: none; }
+
+/* CATEGORY PILLS */
+.cat-strip { display: flex; gap: 8px; flex-wrap: wrap; }
+.cat-pill { padding: 7px 18px; border-radius: 999px; font-size: 12px; font-weight: 600; letter-spacing: 0.05em; text-transform: uppercase; border: 1px solid var(--border-light); background: #fff; color: var(--fg-muted); cursor: pointer; transition: all 0.2s; }
+.cat-pill:hover, .cat-pill.active { background: var(--accent); color: #fff; border-color: var(--accent); }
+
+/* HERO */
+.hero { position: relative; height: 55vh; min-height: 420px; max-height: 620px; display: flex; align-items: flex-end; padding-bottom: 56px; overflow: hidden; }
+.hero-bg { position: absolute; inset: 0; background: linear-gradient(135deg, #1a0500 0%, #0a0a0a 40%, #050510 100%); z-index: 0; }
+.hero-grid { position: absolute; inset: 0; z-index: 1; opacity: 0.04; background-image: linear-gradient(rgba(255,255,255,0.5) 1px, transparent 1px), linear-gradient(90deg,rgba(255,255,255,0.5) 1px,transparent 1px); background-size: 60px 60px; }
+.hero-glow { position: absolute; top: 10%; right: 10%; width: 400px; height: 400px; border-radius: 50%; background: radial-gradient(circle, rgba(255,60,0,0.12) 0%, transparent 70%); z-index: 1; }
+.hero-glow2 { position: absolute; bottom: 0; left: 20%; width: 350px; height: 250px; background: radial-gradient(ellipse, rgba(255,140,0,0.06) 0%, transparent 70%); z-index: 1; }
+.hero-content { position: relative; z-index: 2; max-width: 1260px; margin: 0 auto; padding: 0 48px; width: 100%; }
+.hero-eyebrow { font-size: 11px; font-weight: 700; letter-spacing: 0.2em; text-transform: uppercase; color: var(--accent); margin-bottom: 14px; display: flex; align-items: center; gap: 10px; }
+.hero-eyebrow::before { content: ''; width: 28px; height: 2px; background: var(--accent); }
+.hero-title { font-family: var(--font-display); font-size: clamp(48px,7vw,96px); line-height: 0.92; letter-spacing: 0.02em; color: var(--white); margin-bottom: 18px; }
+.hero-title em { color: var(--accent); font-style: normal; }
+.hero-sub { font-size: 15px; font-weight: 400; color: var(--muted); max-width: 400px; line-height: 1.65; margin-bottom: 28px; }
+.hero-actions { display: flex; gap: 12px; flex-wrap: wrap; }
+.hero-scroll { position: absolute; bottom: 20px; right: 48px; z-index: 2; font-size: 10px; font-weight: 600; letter-spacing: 0.12em; text-transform: uppercase; color: var(--muted); display: flex; align-items: center; gap: 8px; }
+
+/* SECTION */
+.section { padding: 80px 40px; max-width: 1260px; margin: 0 auto; }
+.section-label { font-size: 11px; font-weight: 700; letter-spacing: 0.15em; text-transform: uppercase; color: var(--accent); margin-bottom: 12px; display: flex; align-items: center; gap: 8px; }
+.section-label::before { content: ''; width: 20px; height: 1.5px; background: var(--accent); }
+.section-title { font-family: var(--font-display); font-size: clamp(32px,5vw,52px); letter-spacing: 0.03em; color: var(--fg); line-height: 1; margin-bottom: 8px; }
+.section-sub { font-size: 15px; color: var(--fg-muted); margin-bottom: 40px; }
+.section-header { display: flex; align-items: flex-end; justify-content: space-between; margin-bottom: 32px; }
+
+/* FEATURES BAR */
+.features-bar { background: var(--dark); border-top: 1px solid var(--border); border-bottom: 1px solid var(--border); padding: 28px 40px; }
+.features-inner { max-width: 1260px; margin: 0 auto; display: grid; grid-template-columns: repeat(4,1fr); gap: 24px; }
+.feature-item { display: flex; align-items: center; gap: 14px; }
+.feature-icon { width: 44px; height: 44px; border-radius: 10px; background: rgba(255,60,0,0.1); border: 1px solid rgba(255,60,0,0.2); display: flex; align-items: center; justify-content: center; font-size: 20px; flex-shrink: 0; }
+.feature-name { font-size: 14px; font-weight: 600; color: var(--white); margin-bottom: 2px; }
+.feature-desc { font-size: 12px; color: var(--muted); }
+@media (max-width: 768px) { .features-inner { grid-template-columns: repeat(2,1fr); } .section { padding: 48px 20px; } .hero-content { padding: 0 20px; } .features-bar { padding: 28px 20px; } }
+
+/* PRODUCTS GRID */
+.products-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px,1fr)); gap: 20px; }
+
+/* PRODUCT PAGE */
+.product-page { max-width: 1260px; margin: 0 auto; padding: 172px 40px 80px; display: grid; grid-template-columns: 1fr 1fr; gap: 64px; }
+.product-main-img { width: 100%; aspect-ratio: 1/1; border-radius: 16px; overflow: hidden; background: var(--card-light); border: 1px solid var(--border-light); margin-bottom: 12px; }
+.product-main-img img { width: 100%; height: 100%; object-fit: cover; transition: opacity 0.2s; }
+.product-thumbs { display: flex; gap: 8px; flex-wrap: wrap; }
+.product-thumb { width: 68px; height: 68px; border-radius: 8px; overflow: hidden; border: 2px solid var(--border-light); cursor: pointer; background: var(--card-light); transition: border-color 0.2s; flex-shrink: 0; position: relative; }
+.product-thumb:hover { border-color: var(--accent); }
+.product-thumb.active { border-color: var(--accent); }
+.product-thumb img { width: 100%; height: 100%; object-fit: cover; }
+/* Video thumb play icon overlay */
+.product-thumb-video { background: var(--black); display: flex; align-items: center; justify-content: center; }
+.product-thumb-video::after { content: '▶'; font-size: 22px; color: #fff; opacity: 0.9; }
+/* Video embed container */
+.product-video-wrap { width: 100%; aspect-ratio: 16/9; border-radius: 16px; overflow: hidden; background: #000; border: 1px solid var(--border-light); margin-bottom: 12px; }
+.product-video-wrap iframe { width: 100%; height: 100%; border: none; display: block; }
+.product-video-wrap video { width: 100%; height: 100%; object-fit: contain; display: block; }
+.product-breadcrumb { display: flex; align-items: center; gap: 6px; font-size: 12px; color: var(--fg-muted); margin-bottom: 20px; }
+.breadcrumb-link { cursor: pointer; transition: color 0.2s; }
+.breadcrumb-link:hover { color: var(--fg); }
+.product-cat-tag { font-size: 11px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: var(--accent); margin-bottom: 12px; }
+.product-title { font-family: var(--font-display); font-size: clamp(28px,4vw,44px); letter-spacing: 0.03em; color: var(--fg); line-height: 1.05; margin-bottom: 16px; }
+.product-price { font-size: 32px; font-weight: 700; color: var(--accent); margin-bottom: 20px; }
+.product-desc { font-size: 15px; color: var(--fg-muted); line-height: 1.75; margin-bottom: 28px; padding-bottom: 28px; border-bottom: 1px solid var(--border-light); }
+.product-tags { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 28px; }
+.product-tag { font-size: 11px; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; padding: 4px 10px; border-radius: 4px; background: var(--card-light); border: 1px solid var(--border-light); color: var(--fg-muted); }
+.product-cta { background: var(--card-light); border: 1px solid var(--border-light); border-radius: 12px; padding: 20px; }
+.product-store-info { font-size: 13px; color: var(--fg-muted); line-height: 1.6; margin-bottom: 16px; }
+.product-store-info strong { color: var(--fg); }
+.back-btn { display: inline-flex; align-items: center; gap: 6px; font-size: 12px; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; color: var(--fg-muted); background: none; border: none; cursor: pointer; padding: 0; transition: color 0.2s; margin-bottom: 24px; }
+.back-btn:hover { color: var(--fg); }
+@media (max-width: 900px) { .product-page { grid-template-columns: 1fr; gap: 32px; padding: 148px 20px 48px; } }
+
+/* CATALOG HEADER */
+.catalog-header { background: var(--dark); border-bottom: 1px solid var(--border); padding: 172px 40px 40px; }
+.catalog-header-inner { max-width: 1260px; margin: 0 auto; }
+.catalog-body { max-width: 1260px; margin: 0 auto; padding: 32px 40px; }
+.catalog-layout { display: grid; grid-template-columns: 220px 1fr; gap: 28px; align-items: start; }
+.catalog-filter-row { display: flex; gap: 16px; align-items: center; flex-wrap: wrap; margin-bottom: 20px; }
+
+/* FILTER SIDEBAR */
+.filter-sidebar {
+  background: #fff; border: 1px solid var(--border-light); border-radius: 14px;
+  padding: 20px; position: sticky; top: 140px;
+}
+.filter-sidebar-title {
+  font-size: 11px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase;
+  color: var(--fg-muted); margin-bottom: 16px; padding-bottom: 12px;
+  border-bottom: 1px solid var(--border-light);
+  display: flex; align-items: center; justify-content: space-between;
+}
+.filter-section { margin-bottom: 20px; }
+.filter-section-label {
+  font-size: 12px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase;
+  color: var(--fg); margin-bottom: 10px;
+}
+.filter-check-item {
+  display: flex; align-items: center; gap: 8px;
+  padding: 5px 0; cursor: pointer; user-select: none;
+}
+.filter-check-item input[type="checkbox"] {
+  width: 15px; height: 15px; accent-color: var(--accent);
+  cursor: pointer; flex-shrink: 0; border-radius: 3px;
+}
+.filter-check-item label {
+  font-size: 13px; color: var(--fg-muted); cursor: pointer;
+  transition: color 0.15s; line-height: 1.3;
+}
+.filter-check-item:hover label { color: var(--fg); }
+.filter-check-item input:checked + label { color: var(--accent); font-weight: 600; }
+.filter-clear-btn {
+  font-size: 11px; font-weight: 600; color: var(--accent); background: none;
+  border: none; cursor: pointer; padding: 0; letter-spacing: 0.04em;
+  text-transform: uppercase; transition: opacity 0.2s;
+}
+.filter-clear-btn:hover { opacity: 0.7; }
+.filter-divider { height: 1px; background: var(--border-light); margin: 16px 0; }
+
+/* Mobile filter toggle */
+.filter-mobile-toggle {
+  display: none; align-items: center; gap: 8px;
+  font-size: 13px; font-weight: 600; color: var(--fg);
+  background: #fff; border: 1px solid var(--border-light);
+  border-radius: 8px; padding: 9px 16px; cursor: pointer;
+  transition: all 0.2s;
+}
+.filter-mobile-toggle:hover { border-color: var(--accent); color: var(--accent); }
+.filter-active-count {
+  background: var(--accent); color: #fff;
+  font-size: 10px; font-weight: 700; border-radius: 999px;
+  padding: 1px 6px; margin-left: 2px;
+}
+
+@media (max-width: 900px) {
+  .catalog-layout { grid-template-columns: 1fr; }
+  .filter-sidebar { position: static; display: none; }
+  .filter-sidebar.mobile-open { display: block; }
+  .filter-mobile-toggle { display: flex; }
+}
+@media (max-width: 768px) { .catalog-header { padding: 148px 20px 32px; } .catalog-body { padding: 20px; } }
+
+/* ABOUT */
+.about-hero { min-height: 50vh; display: flex; align-items: center; justify-content: center; text-align: center; padding: 172px 40px 60px; position: relative; overflow: hidden; background: var(--dark); }
+.about-hero-glow { position: absolute; top: 50%; left: 50%; transform: translate(-50%,-50%); width: 600px; height: 300px; background: radial-gradient(ellipse, rgba(255,60,0,0.08), transparent 70%); }
+.about-body { max-width: 900px; margin: 0 auto; padding: 80px 40px; background: var(--bg); }
+.about-stats { display: grid; grid-template-columns: repeat(3,1fr); gap: 24px; margin: 48px 0; }
+.about-stat { text-align: center; background: var(--card-light); border: 1px solid var(--border-light); border-radius: 12px; padding: 28px; }
+.about-stat-val { font-family: var(--font-display); font-size: 48px; color: var(--accent); letter-spacing: 0.03em; }
+.about-stat-label { font-size: 12px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: var(--fg-muted); margin-top: 4px; }
+.about-text { font-size: 16px; color: var(--fg-muted); line-height: 1.85; }
+.about-text h2 { font-family: var(--font-display); font-size: 32px; color: var(--fg); letter-spacing: 0.03em; margin-bottom: 12px; }
+@media (max-width: 768px) { .about-stats { grid-template-columns: 1fr; } .about-body { padding: 48px 20px; } }
+
+/* CONTACT */
+.contact-layout { display: grid; grid-template-columns: 1fr 1fr; gap: 64px; max-width: 1100px; margin: 0 auto; padding: 172px 40px 80px; }
+.contact-icon { width: 44px; height: 44px; border-radius: 10px; flex-shrink: 0; background: rgba(255,60,0,0.08); border: 1px solid rgba(255,60,0,0.18); display: flex; align-items: center; justify-content: center; font-size: 18px; }
+.contact-info-item { display: flex; align-items: flex-start; gap: 16px; margin-bottom: 28px; }
+.contact-info-label { font-size: 13px; font-weight: 600; color: var(--fg); margin-bottom: 4px; }
+.contact-info-val { font-size: 14px; color: var(--fg-muted); line-height: 1.6; }
+.contact-form-card { background: #fff; border: 1px solid var(--border-light); border-radius: 16px; padding: 36px; box-shadow: 0 4px 24px rgba(0,0,0,0.06); }
+@media (max-width: 900px) { .contact-layout { grid-template-columns: 1fr; padding: 148px 20px 48px; } }
+
+/* FOOTER */
+footer { background: var(--dark); border-top: 1px solid var(--border); padding: 64px 40px 32px; }
+.footer-inner { max-width: 1260px; margin: 0 auto; }
+.footer-grid { display: grid; grid-template-columns: 2fr 1fr 1fr; gap: 48px; margin-bottom: 48px; }
+.footer-logo { display: flex; align-items: center; gap: 10px; margin-bottom: 16px; }
+.footer-logo-img { height: 32px; width: auto; max-width: 120px; object-fit: contain; }
+.footer-logo-text { font-family: var(--font-display); font-size: 24px; letter-spacing: 0.04em; color: var(--white); }
+.footer-desc { font-size: 14px; color: var(--muted); line-height: 1.7; max-width: 300px; }
+.footer-col-title { font-size: 11px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: var(--white); margin-bottom: 16px; }
+.footer-links { display: flex; flex-direction: column; gap: 10px; }
+.footer-link { font-size: 14px; color: var(--muted); cursor: pointer; border: none; background: none; text-align: left; transition: color 0.2s; padding: 0; }
+.footer-link:hover { color: var(--white); }
+.footer-bottom { border-top: 1px solid var(--border); padding-top: 24px; display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; }
+.footer-copy { font-size: 12px; color: var(--muted); }
+@media (max-width: 768px) { .footer-grid { grid-template-columns: 1fr; gap: 32px; } footer { padding: 48px 20px 24px; } }
+
+/* LOGO SETTINGS */
+.logo-upload-area { border: 2px dashed var(--border); border-radius: 12px; padding: 28px; text-align: center; cursor: pointer; transition: all 0.2s; background: rgba(255,255,255,0.02); }
+.logo-upload-area:hover { border-color: var(--accent); background: rgba(255,60,0,0.04); }
+.logo-preview { display: none; align-items: center; gap: 16px; justify-content: center; padding: 8px; }
+.logo-preview img { height: 48px; max-width: 180px; object-fit: contain; border-radius: 6px; background: rgba(255,255,255,0.06); padding: 6px 10px; }
+/* Live nav logo preview box */
+.logo-nav-preview { background: rgba(10,10,10,0.95); border: 1px solid var(--border); border-radius: 10px; padding: 16px 24px; display: flex; align-items: center; gap: 14px; margin-bottom: 20px; }
+.logo-nav-preview-label { font-size: 10px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); margin-right: auto; }
+
+/* CONTACT FORM INPUTS - light style */
+.form-input-light, .form-textarea-light {
+  width: 100%; padding: 11px 14px; background: #f7f7f8; border: 1px solid var(--border-light); border-radius: 8px; font-family: var(--font-body); font-size: 14px; color: var(--fg); outline: none; transition: border-color 0.2s, box-shadow 0.2s;
+}
+.form-input-light:focus, .form-textarea-light:focus { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(255,60,0,0.08); background: #fff; }
+.form-textarea-light { resize: vertical; min-height: 100px; }
+/* btn-outline adapted for light pages */
+.btn-outline-dark { background: transparent; color: var(--fg); border: 1.5px solid #ccc; }
+.btn-outline-dark:hover { border-color: var(--accent); color: var(--accent); background: rgba(255,60,0,0.04); }
+::-webkit-scrollbar { width: 6px; }
+::-webkit-scrollbar-track { background: var(--black); }
+::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+
+/* ANIMATIONS */
+@keyframes fadeUp { from { opacity:0; transform:translateY(20px); } to { opacity:1; transform:translateY(0); } }
+.fade-up { animation: fadeUp 0.6s ease forwards; }
+.d1 { animation-delay: 0.1s; opacity: 0; }
+.d2 { animation-delay: 0.2s; opacity: 0; }
+.d3 { animation-delay: 0.3s; opacity: 0; }
+.d4 { animation-delay: 0.4s; opacity: 0; }
+@keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+.spin { animation: spin 0.8s linear infinite; display: inline-block; }
+</style>
+</head>
+<body>
+
+<!-- TOAST -->
+<div class="toast" id="toast"><span id="toast-icon">✓</span><span id="toast-msg">Done!</span></div>
+
+<!-- ══════ NAV STOREFRONT ══════ -->
+<nav class="nav" id="storefront-nav">
+  <button class="nav-logo" onclick="showPage('home')">
+    <img class="nav-logo-img" id="nav-logo-img" src="" alt="Logo" style="display:none">
+    <span class="nav-logo-text" id="nav-logo-text">LOOTLY<span class="nav-logo-dot">.</span></span>
+  </button>
+  <div class="nav-links">
+    <button class="nav-link" id="nl-home" onclick="showPage('home')">Home</button>
+    <button class="nav-link" id="nl-catalog" onclick="showPage('catalog')">Catalog</button>
+    <button class="nav-link" id="nl-about" onclick="showPage('about')">About</button>
+    <button class="nav-link" id="nl-contact" onclick="showPage('contact')">Contact</button>
+  </div>
+  <div class="nav-spacer"></div>
+  <div style="display:flex;align-items:center;gap:10px">
+    <button class="nav-hamburger" onclick="toggleMobile()">
+      <svg width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 22 22"><path d="M3 7h16M3 11h16M3 15h16"/></svg>
+    </button>
+  </div>
+</nav>
+<div class="mobile-menu" id="mobile-menu">
+  <button class="mobile-link" onclick="showPage('home');toggleMobile()">Home</button>
+  <button class="mobile-link" onclick="showPage('catalog');toggleMobile()">Catalog</button>
+  <button class="mobile-link" onclick="showPage('about');toggleMobile()">About</button>
+  <button class="mobile-link" onclick="showPage('contact');toggleMobile()">Contact</button>
+</div>
+
+<!-- ══════ NAV ADMIN ══════ -->
+<nav class="nav" id="admin-nav" style="display:none">
+  <button class="nav-logo">
+    <img class="nav-logo-img" id="admin-nav-logo-img" src="" alt="Logo" style="display:none">
+    <span class="nav-logo-text" id="admin-nav-logo-text">LOOTLY<span class="nav-logo-dot">.</span></span>
+  </button>
+  <span class="admin-badge">Admin</span>
+  <div class="nav-spacer"></div>
+  <button class="exit-btn" onclick="exitAdmin()">← Exit to Store</button>
+</nav>
+
+<!-- ══════════════════════════════════
+     HOME
+══════════════════════════════════ -->
+<div class="page active" id="page-home">
+  <section class="hero">
+    <div class="hero-bg"></div>
+    <div class="hero-grid"></div>
+    <div class="hero-glow"></div>
+    <div class="hero-glow2"></div>
+    <div class="hero-content">
+      <div class="hero-eyebrow fade-up">New Arrivals 2025</div>
+      <h1 class="hero-title fade-up d1">TOYS &amp;<br><em>COLLECTIBLES</em></h1>
+      <p class="hero-sub fade-up d2">Premium scale models, action figures, and rare collectibles — hand-selected for true enthusiasts.</p>
+      <div class="hero-actions fade-up d3">
+        <button class="btn btn-red" onclick="showPage('catalog')">Shop Now <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 14 14"><path d="M2 7h10M7 2l5 5-5 5"/></svg></button>
+        <button class="btn btn-outline" onclick="showPage('about')">Our Story</button>
+      </div>
+    </div>
+    <div class="hero-scroll fade-up d4">Scroll to explore <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 16 16"><path d="M8 3v10M4 9l4 4 4-4"/></svg></div>
+  </section>
+
+  <div class="features-bar">
+    <div class="features-inner">
+      <div class="feature-item"><div class="feature-icon">🏪</div><div><div class="feature-name">Physical Store</div><div class="feature-desc">Visit us in person</div></div></div>
+      <div class="feature-item"><div class="feature-icon">🎯</div><div><div class="feature-name">Curated Picks</div><div class="feature-desc">Hand-selected every item</div></div></div>
+      <div class="feature-item"><div class="feature-icon">📦</div><div><div class="feature-name">Careful Packaging</div><div class="feature-desc">Safe & secure</div></div></div>
+      <div class="feature-item"><div class="feature-icon">💬</div><div><div class="feature-name">Expert Advice</div><div class="feature-desc">We know our stuff</div></div></div>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-header">
+      <div>
+        <div class="section-label">Browse</div>
+        <div class="section-title">NEW ARRIVALS</div>
+        <div class="section-sub">The latest additions to our collection</div>
+      </div>
+      <button class="btn btn-outline-dark btn-sm" onclick="showPage('catalog')">View All →</button>
+    </div>
+    <div class="products-grid" id="home-grid"></div>
+  </div>
+
+  <div style="background:var(--accent);padding:28px 40px">
+    <div style="max-width:1260px;margin:0 auto;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:16px">
+      <div>
+        <div style="font-family:var(--font-display);font-size:26px;letter-spacing:0.04em;color:#fff">VISIT OUR STORE</div>
+        <div style="font-size:14px;color:rgba(255,255,255,0.8);margin-top:4px" id="banner-info">Level 4 Festival Mall, Filivest City, Alabang, Muntinlupa City · Monday to Friday 10:00 AM to 9:00 PM · Saturday to Sunday 10:00 AM to 9:00 PM</div>
+      </div>
+      <button class="btn" style="background:#fff;color:var(--accent)" onclick="showPage('contact')">Get Directions</button>
+    </div>
+  </div>
+
+  <footer>
+    <div class="footer-inner">
+      <div class="footer-grid">
+        <div>
+          <div class="footer-logo">
+            <img class="footer-logo-img" id="footer-logo-img" src="" alt="" style="display:none">
+            <span class="footer-logo-text" id="footer-logo-text">LOOTLY<span style="color:var(--accent)">.</span></span>
+          </div>
+          <p class="footer-desc">Premier destination for toys, scale models, and rare collectibles. Every piece tells a story.</p>
+        </div>
+        <div>
+          <div class="footer-col-title">Navigate</div>
+          <div class="footer-links">
+            <button class="footer-link" onclick="showPage('home')">Home</button>
+            <button class="footer-link" onclick="showPage('catalog')">Catalog</button>
+            <button class="footer-link" onclick="showPage('about')">About</button>
+            <button class="footer-link" onclick="showPage('contact')">Contact</button>
+            <a class="footer-link ig-link" href="#" target="_blank" rel="noopener" style="display:none;text-decoration:none;align-items:center;gap:6px">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="2" width="20" height="20" rx="5"/><circle cx="12" cy="12" r="5"/><circle cx="17.5" cy="6.5" r="1.5" fill="currentColor" stroke="none"/></svg>
+              Instagram ↗
+            </a>
+            <a class="footer-link tt-link" href="#" target="_blank" rel="noopener" style="display:none;text-decoration:none;align-items:center;gap:6px">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor"><path d="M19.59 6.69a4.83 4.83 0 0 1-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 0 1-2.88 2.5 2.89 2.89 0 0 1-2.89-2.89 2.89 2.89 0 0 1 2.89-2.89c.28 0 .54.04.79.1V9.01a6.33 6.33 0 0 0-.79-.05 6.34 6.34 0 0 0-6.34 6.34 6.34 6.34 0 0 0 6.34 6.34 6.34 6.34 0 0 0 6.33-6.34V8.69a8.18 8.18 0 0 0 4.78 1.52V6.75a4.85 4.85 0 0 1-1.01-.06z"/></svg>
+              TikTok ↗
+            </a>
+            <a class="footer-link fb-link" href="#" target="_blank" rel="noopener" style="display:none;text-decoration:none;align-items:center;gap:6px">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor"><path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/></svg>
+              Facebook ↗
+            </a>
+          </div>
+        </div>
+        <div>
+          <div class="footer-col-title">Visit Us</div>
+          <div class="footer-desc" id="footer-store-info"><br>Level 4 Festival Mall, Filivest City, Alabang, Muntinlupa City<br><br>Mon–Fri: 10am–9pm<br>Sat-Sun: 10am–9pm</div>
+        </div>
+      </div>
+      <div class="footer-bottom">
+        <div class="footer-copy">© 2025 Lootly. All rights reserved.</div>
+        <div class="footer-copy">Built for toy lovers ❤️</div>
+      </div>
+    </div>
+  </footer>
+</div>
+
+<!-- ══════════════════════════════════
+     CATALOG
+══════════════════════════════════ -->
+<div class="page" id="page-catalog">
+  <div class="catalog-header">
+    <div class="catalog-header-inner">
+      <div class="section-label">Our Products</div>
+      <h1 class="section-title" style="margin-bottom:4px">SHOP THE CATALOG</h1>
+      <div class="section-sub" style="margin-bottom:0">Browse our full collection of premium toys &amp; collectibles</div>
+    </div>
+  </div>
+  <div class="catalog-body">
+    <!-- Top filter row: category pills + search -->
+    <div class="catalog-filter-row">
+      <button class="filter-mobile-toggle" onclick="toggleFilterSidebar()" id="filter-toggle-btn">
+        <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 14 14"><path d="M1 3h12M3 7h8M5 11h4"/></svg>
+        Filter
+        <span class="filter-active-count" id="filter-active-count" style="display:none">0</span>
+      </button>
+      <div class="cat-strip" id="catalog-cats"></div>
+      <div class="search-wrap" style="min-width:200px;max-width:280px;margin-left:auto">
+        <input type="text" class="search-input" placeholder="Search…" oninput="searchCatalog(this.value)" id="cat-search">
+        <svg class="search-icon" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 14 14"><circle cx="6" cy="6" r="4"/><path d="M9.5 9.5l3 3"/></svg>
+      </div>
+    </div>
+
+    <!-- Two-column: sidebar + grid -->
+    <div class="catalog-layout">
+
+      <!-- FILTER SIDEBAR -->
+      <aside class="filter-sidebar" id="filter-sidebar">
+        <div class="filter-sidebar-title">
+          Filters
+          <button class="filter-clear-btn" onclick="clearAllFilters()" id="filter-clear-all" style="display:none">Clear all</button>
+        </div>
+
+        <!-- Accessories filter -->
+        <div class="filter-section">
+          <div class="filter-section-label">Accessories</div>
+          <div class="filter-check-item">
+            <input type="checkbox" id="filter-accessories">
+            <label for="filter-accessories">Accessories</label>
+          </div>
+        </div>
+
+        <div class="filter-divider"></div>
+
+        <!-- By Brand filter -->
+        <div class="filter-section">
+          <div class="filter-section-label">By Brand</div>
+          <div id="brand-filter-list">
+            <!-- Rendered by JS -->
+          </div>
+        </div>
+      </aside>
+
+      <!-- PRODUCT GRID -->
+      <div>
+        <div class="products-grid" id="catalog-grid"></div>
+        <div id="catalog-empty" class="hidden" style="text-align:center;padding:80px 0;color:var(--fg-muted)">
+          <div style="font-size:48px;margin-bottom:16px">🔍</div>
+          <div style="font-family:var(--font-display);font-size:28px;color:var(--fg);letter-spacing:0.03em;margin-bottom:8px">NOTHING FOUND</div>
+          <div style="font-size:14px">Try a different search, category, or filter</div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <footer style="margin-top:40px">
+    <div class="footer-inner">
+      <div class="footer-bottom">
+        <div class="footer-copy">© 2025 Lootly. All rights reserved.</div>
+        <button class="footer-link" onclick="showPage('home')">← Back to Home</button>
+      </div>
+    </div>
+  </footer>
+</div>
+
+<!-- ══════════════════════════════════
+     PRODUCT PAGE
+══════════════════════════════════ -->
+<div class="page" id="page-product">
+  <div class="product-page" id="product-page-content"></div>
+  <footer>
+    <div class="footer-inner">
+      <div class="footer-bottom">
+        <div class="footer-copy">© 2025 Lootly. All rights reserved.</div>
+        <button class="footer-link" onclick="history.back()">← Go Back</button>
+      </div>
+    </div>
+  </footer>
+</div>
+
+<!-- ══════════════════════════════════
+     ABOUT
+══════════════════════════════════ -->
+<div class="page" id="page-about">
+  <div class="about-hero">
+    <div class="about-hero-glow"></div>
+    <div style="position:relative;z-index:1">
+      <div class="section-label" style="justify-content:center;margin-bottom:16px">Our Story</div>
+      <h1 style="font-family:var(--font-display);font-size:clamp(48px,8vw,88px);letter-spacing:0.03em;color:var(--white);line-height:1">WE STARTED WITH<br><span style="color:var(--accent)">ONE GOOD TOY.</span></h1>
+    </div>
+  </div>
+  <div class="about-body">
+    <div class="about-stats">
+      <div class="about-stat"><div class="about-stat-val">6+</div><div class="about-stat-label">Years Open</div></div>
+      <div class="about-stat"><div class="about-stat-val">500+</div><div class="about-stat-label">Products</div></div>
+      <div class="about-stat"><div class="about-stat-val">10k+</div><div class="about-stat-label">Happy Customers</div></div>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:48px" id="about-grid">
+      <div>
+        <div class="about-text"><h2>Who We Are</h2></div>
+        <p class="about-text">Lootly began as a small corner shop with a big dream — to bring together the most exciting, high-quality toys and collectibles under one roof. What started with a handful of scale models has grown into the most beloved toy destination.</p>
+        <p class="about-text" style="margin-top:16px">We believe collecting should feel like an adventure. Every shelf is stocked with intention, every product earns its place, and every visit should leave you with something special.</p>
+      </div>
+      <div>
+        <div class="about-text"><h2>What We Stand For</h2></div>
+        <p class="about-text">Quality over quantity. Passion over profit. Our team are collectors first, and we personally test and curate everything we stock. If we wouldn't be proud to put it in our own collection, it doesn't make the cut.</p>
+        <p class="about-text" style="margin-top:16px">From rare 1:64 diecasts to premium action figures, we source from the world's best manufacturers — and we're always on the hunt for the next great find.</p>
+      </div>
+    </div>
+  </div>
+  <footer>
+    <div class="footer-inner">
+      <div class="footer-bottom">
+        <div class="footer-copy">© 2025 Lootly. All rights reserved.</div>
+        <button class="footer-link" onclick="showPage('home')">← Back to Home</button>
+      </div>
+    </div>
+  </footer>
+</div>
+
+<!-- ══════════════════════════════════
+     CONTACT
+══════════════════════════════════ -->
+<div class="page" id="page-contact">
+  <div class="contact-layout">
+    <div>
+      <div class="section-label" style="margin-bottom:16px">Get in Touch</div>
+      <h1 style="font-family:var(--font-display);font-size:clamp(36px,5vw,60px);letter-spacing:0.03em;color:var(--fg);line-height:1;margin-bottom:20px">WE'D LOVE TO<br><span style="color:var(--accent)">HEAR FROM YOU.</span></h1>
+      <p style="font-size:15px;color:var(--fg-muted);line-height:1.7;margin-bottom:40px">Have a question about a product, or want to know if we have something in stock? Drop us a message.</p>
+      <div class="contact-info-item"><div class="contact-icon">📍</div><div><div class="contact-info-label">Visit Us</div><div class="contact-info-val" id="ci-address">Level 4 Festival Mall, Filivest City, Alabang, Muntinlupa City</div></div></div>
+      <div class="contact-info-item"><div class="contact-icon">📞</div><div><div class="contact-info-label">Call Us</div><div class="contact-info-val" id="ci-phone">+639065938569</div></div></div>
+      <div class="contact-info-item" id="contact-wa-item" style="display:none">
+        <div class="contact-icon" style="background:rgba(37,211,102,0.1);border-color:rgba(37,211,102,0.25)">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="#25D166"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 0 1-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 0 1-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 0 1 2.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0 0 12.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 0 0 5.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 0 0-3.48-8.413z"/></svg>
+        </div>
+        <div>
+          <div class="contact-info-label">WhatsApp</div>
+          <div class="contact-info-val"><a id="ci-wa-link" href="#" rel="noopener" style="color:#25D166;text-decoration:none;font-weight:600;transition:opacity 0.2s" onmouseover="this.style.opacity=0.7" onmouseout="this.style.opacity=1">Chat on WhatsApp ↗</a></div>
+        </div>
+      </div>
+      <div class="contact-info-item" id="contact-vb-item" style="display:none">
+        <div class="contact-icon" style="background:rgba(125,86,191,0.1);border-color:rgba(125,86,191,0.25)">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="#7D56BF"><path d="M11.398.002C8.555-.028 3.01.676 1.09 6.254c-.857 2.634-.951 5.32.104 7.852C2.532 17.29 5.246 19.754 7.5 21.358l.028.02v2.445c0 .285.346.432.546.226l2.273-2.427c.671.073 1.35.109 2.028.101 2.137-.024 4.35-.55 6.025-1.728 3.765-2.667 4.195-7.038 3.73-10.32C21.52 4.54 17.894.065 11.398.002zm4.902 15.087c-.547.598-1.27 1.04-2.047 1.157-.118.018-.231.025-.341.025-.458 0-.883-.145-1.276-.349-.93-.48-1.787-1.105-2.582-1.804a18.605 18.605 0 0 1-2.063-2.177c-.618-.797-1.17-1.65-1.537-2.611-.264-.691-.343-1.408-.035-2.09.2-.44.527-.784.909-1.052.326-.228.676-.36 1.073-.36.149 0 .3.014.444.048.358.083.641.301.847.596.284.405.548.823.799 1.246.157.263.295.538.464.794.217.329.16.683-.084.969-.117.137-.254.256-.387.376-.135.122-.277.237-.4.368-.134.142-.154.314-.08.484.26.599.646 1.104 1.094 1.565.504.52 1.065.969 1.694 1.324.234.132.477.25.75.207.2-.031.356-.18.498-.324.14-.143.273-.293.413-.434.267-.272.58-.356.938-.22.351.133.693.28 1.035.426.342.146.68.299.997.487.384.227.477.623.258 1.019l-.001-.001z"/></svg>
+        </div>
+        <div>
+          <div class="contact-info-label">Viber</div>
+          <div class="contact-info-val"><a id="ci-vb-link" href="#" rel="noopener" style="color:#7D56BF;text-decoration:none;font-weight:600;transition:opacity 0.2s" onmouseover="this.style.opacity=0.7" onmouseout="this.style.opacity=1">Chat on Viber ↗</a></div>
+        </div>
+      </div>
+      <div class="contact-info-item"><div class="contact-icon">✉️</div><div><div class="contact-info-label">Email Us</div><div class="contact-info-val" id="ci-email">hello@lootly.sg</div></div></div>
+      <div class="contact-info-item" id="contact-ig-item" style="display:none">
+        <div class="contact-icon">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="2" width="20" height="20" rx="5"/><circle cx="12" cy="12" r="5"/><circle cx="17.5" cy="6.5" r="1.5" fill="currentColor" stroke="none"/></svg>
+        </div>
+        <div>
+          <div class="contact-info-label">Instagram</div>
+          <div class="contact-info-val"><a class="ig-link" href="#" target="_blank" rel="noopener" style="color:var(--accent);text-decoration:none;font-weight:600;transition:opacity 0.2s" onmouseover="this.style.opacity=0.7" onmouseout="this.style.opacity=1">Follow us on Instagram ↗</a></div>
+        </div>
+      </div>
+      <div class="contact-info-item" id="contact-tt-item" style="display:none">
+        <div class="contact-icon">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M19.59 6.69a4.83 4.83 0 0 1-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 0 1-2.88 2.5 2.89 2.89 0 0 1-2.89-2.89 2.89 2.89 0 0 1 2.89-2.89c.28 0 .54.04.79.1V9.01a6.33 6.33 0 0 0-.79-.05 6.34 6.34 0 0 0-6.34 6.34 6.34 6.34 0 0 0 6.34 6.34 6.34 6.34 0 0 0 6.33-6.34V8.69a8.18 8.18 0 0 0 4.78 1.52V6.75a4.85 4.85 0 0 1-1.01-.06z"/></svg>
+        </div>
+        <div>
+          <div class="contact-info-label">TikTok</div>
+          <div class="contact-info-val"><a class="tt-link" href="#" target="_blank" rel="noopener" style="color:var(--accent);text-decoration:none;font-weight:600;transition:opacity 0.2s" onmouseover="this.style.opacity=0.7" onmouseout="this.style.opacity=1">Follow us on TikTok ↗</a></div>
+        </div>
+      </div>
+      <div class="contact-info-item" id="contact-fb-item" style="display:none">
+        <div class="contact-icon">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/></svg>
+        </div>
+        <div>
+          <div class="contact-info-label">Facebook</div>
+          <div class="contact-info-val"><a class="fb-link" href="#" target="_blank" rel="noopener" style="color:var(--accent);text-decoration:none;font-weight:600;transition:opacity 0.2s" onmouseover="this.style.opacity=0.7" onmouseout="this.style.opacity=1">Visit us on Facebook ↗</a></div>
+        </div>
+      </div>
+      <div class="contact-info-item"><div class="contact-icon">🕐</div><div><div class="contact-info-label">Hours</div><div class="contact-info-val" id="ci-hours">Mon–Sat: 10am–8pm<br>Sun: 11am–6pm</div></div></div>
+    </div>
+    <div class="contact-form-card">
+      <h2 style="font-family:var(--font-display);font-size:28px;letter-spacing:0.04em;color:var(--fg);margin-bottom:24px">SEND A MESSAGE</h2>
+      <div class="form-group"><label class="form-label" style="color:var(--fg-muted)">Your Name *</label><input type="text" class="form-input-light" id="cf-name" placeholder="Jane Tan"></div>
+      <div class="form-group"><label class="form-label" style="color:var(--fg-muted)">Email *</label><input type="email" class="form-input-light" id="cf-email" placeholder="jane@example.com"></div>
+      <div class="form-group"><label class="form-label" style="color:var(--fg-muted)">Subject</label><input type="text" class="form-input-light" id="cf-subject" placeholder="Product inquiry..."></div>
+      <div class="form-group"><label class="form-label" style="color:var(--fg-muted)">Message *</label><textarea class="form-textarea-light" id="cf-message" rows="4" placeholder="Tell us more…"></textarea></div>
+      <!-- Error message -->
+      <div id="cf-error" style="display:none;font-size:13px;color:#dc2626;margin-bottom:12px;padding:10px 14px;background:rgba(220,38,38,0.06);border-radius:8px;border:1px solid rgba(220,38,38,0.2)"></div>
+      <!-- Success message -->
+      <div id="cf-success" style="display:none;font-size:13px;color:#16a34a;margin-bottom:12px;padding:10px 14px;background:rgba(22,163,74,0.06);border-radius:8px;border:1px solid rgba(22,163,74,0.2)">
+        ✓ Message sent! We'll get back to you soon.
+      </div>
+      <button class="btn btn-red" id="cf-submit" style="width:100%;justify-content:center;margin-top:8px" onclick="submitContactForm()">
+        Send Message
+        <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 14 14"><path d="M2 7l10-5-5 12-2-5-3-2Z"/></svg>
+      </button>
+    </div>
+  </div>
+  <footer>
+    <div class="footer-inner">
+      <div class="footer-bottom">
+        <div class="footer-copy">© 2025 Lootly. All rights reserved.</div>
+        <button class="footer-link" onclick="showPage('home')">← Back to Home</button>
+      </div>
+    </div>
+  </footer>
+</div>
+
+<!-- ══════════════════════════════════
+     ADMIN
+══════════════════════════════════ -->
+<div class="page" id="page-admin">
+  <div class="admin-layout">
+    <aside class="admin-sidebar">
+      <div class="admin-sidebar-label">Overview</div>
+      <button class="sidebar-item active" id="sb-dashboard" onclick="showTab('dashboard')">
+        <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 16 16"><rect x="2" y="2" width="5" height="5" rx="1"/><rect x="9" y="2" width="5" height="5" rx="1"/><rect x="2" y="9" width="5" height="5" rx="1"/><rect x="9" y="9" width="5" height="5" rx="1"/></svg>
+        Dashboard
+      </button>
+      <div class="admin-sidebar-label">Catalog</div>
+      <button class="sidebar-item" id="sb-products" onclick="showTab('products')">
+        <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 16 16"><path d="M2 4h12v10H2zM5 4V3a3 3 0 0 1 6 0v1"/></svg>
+        Products
+      </button>
+      <button class="sidebar-item" onclick="openProductModal(null)">
+        <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 16 16"><path d="M8 3v10M3 8h10"/></svg>
+        Add Product
+      </button>
+      <button class="sidebar-item" id="sb-categories" onclick="showTab('categories')">
+        <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 16 16"><path d="M2 4h4v4H2zM10 4h4v4h-4zM2 10h4v4H2zM10 10h4v4h-4z"/></svg>
+        Categories
+      </button>
+      <div class="admin-sidebar-label">Settings</div>
+      <button class="sidebar-item" id="sb-settings" onclick="showTab('settings')">
+        <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 16 16"><circle cx="8" cy="8" r="2.5"/><path d="M8 1v2M8 13v2M1 8h2M13 8h2M3.22 3.22l1.41 1.41M11.36 11.36l1.41 1.41M3.22 12.78l1.41-1.41M11.36 4.64l1.41-1.41"/></svg>
+        Store Settings
+      </button>
+    </aside>
+
+    <main class="admin-main">
+      <!-- DASHBOARD -->
+      <div class="admin-tab active" id="tab-dashboard">
+        <div class="admin-tab-title">DASHBOARD</div>
+        <div class="admin-tab-sub">Welcome back — here's your store at a glance.</div>
+        <div class="stat-grid">
+          <div class="stat-card"><div class="stat-label">Total Products</div><div class="stat-value" id="s-total">0</div></div>
+          <div class="stat-card"><div class="stat-label">Published</div><div class="stat-value stat-green" id="s-pub">0</div></div>
+          <div class="stat-card"><div class="stat-label">Drafts</div><div class="stat-value stat-gold" id="s-draft">0</div></div>
+          <div class="stat-card"><div class="stat-label">Categories</div><div class="stat-value stat-red" id="s-cats">0</div></div>
+        </div>
+        <div class="table-wrap">
+          <div style="padding:20px 20px 12px;display:flex;align-items:center;justify-content:space-between">
+            <div style="font-family:var(--font-display);font-size:20px;letter-spacing:0.03em;color:var(--white)">RECENT PRODUCTS</div>
+            <button class="btn btn-dark btn-sm" onclick="showTab('products')">View All →</button>
+          </div>
+          <div id="dash-recent"></div>
+        </div>
+      </div>
+
+      <!-- PRODUCTS -->
+      <div class="admin-tab" id="tab-products">
+        <div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:4px">
+          <div class="admin-tab-title">PRODUCTS</div>
+          <button class="btn btn-red" onclick="openProductModal(null)">+ Add Product</button>
+        </div>
+        <div class="admin-tab-sub">Manage your catalog items</div>
+        <div class="filter-bar">
+          <div class="search-wrap" style="flex:1;min-width:180px">
+            <input type="text" class="search-input" placeholder="Search products…" id="ap-search" oninput="filterAdmin()">
+            <svg class="search-icon" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 14 14"><circle cx="6" cy="6" r="4"/><path d="M9.5 9.5l3 3"/></svg>
+          </div>
+          <select class="form-select" style="width:auto;min-width:130px" id="ap-status" onchange="filterAdmin()">
+            <option value="all">All Status</option>
+            <option value="published">Published</option>
+            <option value="draft">Draft</option>
+          </select>
+          <select class="form-select" style="width:auto;min-width:150px" id="ap-cat" onchange="filterAdmin()">
+            <option value="all">All Categories</option>
+          </select>
+        </div>
+        <div class="table-wrap">
+          <div style="overflow-x:auto">
+            <table class="admin-table">
+              <thead><tr><th>Product</th><th>Category</th><th>Price</th><th>Status</th><th>Actions</th></tr></thead>
+              <tbody id="ap-tbody"></tbody>
+            </table>
+          </div>
+          <div id="ap-empty" class="empty-state hidden">
+            <div class="empty-state-icon">📦</div>
+            <div class="empty-state-title">NO PRODUCTS YET</div>
+            <div class="empty-state-sub">Start by adding your first product</div>
+            <button class="btn btn-red" onclick="openProductModal(null)">Add First Product</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- CATEGORIES -->
+      <div class="admin-tab" id="tab-categories">
+        <div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:4px">
+          <div class="admin-tab-title">CATEGORIES</div>
+          <button class="btn btn-red" onclick="openCatModal()">+ Add Category</button>
+        </div>
+        <div class="admin-tab-sub">Organize your products into groups</div>
+        <div id="cats-list" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:16px"></div>
+        <div id="cats-empty" class="empty-state hidden">
+          <div class="empty-state-icon">🗂️</div>
+          <div class="empty-state-title">NO CATEGORIES YET</div>
+          <div class="empty-state-sub">Create categories to organize your products</div>
+          <button class="btn btn-red" onclick="openCatModal()">Add First Category</button>
+        </div>
+      </div>
+
+      <!-- SETTINGS -->
+      <div class="admin-tab" id="tab-settings">
+        <div class="admin-tab-title">STORE SETTINGS</div>
+        <div class="admin-tab-sub">Manage your store branding and social links</div>
+
+        <!-- LOGO CARD -->
+        <div style="background:var(--card);border:1px solid var(--border);border-radius:12px;padding:28px;max-width:560px;margin-bottom:20px">
+          <div style="font-size:15px;font-weight:700;color:var(--white);margin-bottom:4px">Store Logo</div>
+          <div style="font-size:13px;color:var(--muted);margin-bottom:20px">Your logo appears in the navigation bar and footer. Use a PNG or SVG with a transparent background for best results.</div>
+
+          <!-- Live preview -->
+          <div style="margin-bottom:20px">
+            <div style="font-size:11px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:var(--muted);margin-bottom:8px">Live Preview — Navigation Bar</div>
+            <div class="logo-nav-preview">
+              <img id="settings-logo-preview-img" src="" alt="" style="height:100px;max-width:260px;object-fit:contain;display:none">
+              <span id="settings-logo-preview-text" style="font-family:var(--font-display);font-size:36px;letter-spacing:0.04em;color:var(--white);line-height:1">LOOTLY<span style="color:var(--accent)">.</span></span>
+              <span class="logo-nav-preview-label">← Your logo here</span>
+            </div>
+          </div>
+
+          <!-- Upload -->
+          <div class="form-group">
+            <label class="form-label">Upload Logo File</label>
+            <div class="logo-upload-area" onclick="document.getElementById('logo-file').click()">
+              <div id="logo-drop-content">
+                <div style="font-size:36px;margin-bottom:10px">🖼️</div>
+                <div style="font-size:14px;font-weight:600;color:var(--white);margin-bottom:4px">Click to upload logo</div>
+                <div style="font-size:12px;color:var(--muted)">PNG, JPG, SVG — transparent background recommended</div>
+              </div>
+              <div class="logo-preview" id="logo-preview-wrap">
+                <img id="logo-preview-img" src="" alt="Logo preview">
+                <div>
+                  <div style="font-size:13px;font-weight:600;color:var(--white)" id="logo-file-name">Logo uploaded</div>
+                  <div style="font-size:11px;color:var(--muted);margin-top:2px">Click to change</div>
+                </div>
+              </div>
+            </div>
+            <input type="file" id="logo-file" accept="image/*" style="display:none" onchange="handleLogoUpload(this)">
+            <div class="form-hint">Recommended: height 40–60px, transparent or dark background</div>
+          </div>
+
+          <!-- URL input -->
+          <div class="form-group">
+            <label class="form-label">Or paste an image URL</label>
+            <div style="display:flex;gap:8px">
+              <input type="text" class="form-input" id="logo-url-input" placeholder="https://your-logo-url.com/logo.png" style="flex:1">
+              <button class="btn btn-dark" onclick="applyLogoUrl()">Apply</button>
+            </div>
+          </div>
+
+          <div class="divider"></div>
+          <button class="btn btn-danger btn-sm" onclick="removeLogo()">Remove Logo</button>
+          <div class="form-hint" style="margin-top:8px">Removing the logo will show the text "LOOTLY." wordmark instead</div>
+        </div>
+
+        <!-- STORE INFO CARD -->
+        <div style="background:var(--card);border:1px solid var(--border);border-radius:12px;padding:28px;max-width:560px;margin-bottom:20px">
+          <div style="font-size:15px;font-weight:700;color:var(--white);margin-bottom:4px">Store Information</div>
+          <div style="font-size:13px;color:var(--muted);margin-bottom:20px">This info appears on the Contact page, home banner, footer, and product pages.</div>
+          <div class="form-group">
+            <label class="form-label">Address</label>
+            <input type="text" class="form-input" id="si-address" placeholder="Level 4 Festival Mall, Filivest City, Alabang, Muntinlupa City">
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label">Phone Number</label>
+              <input type="text" class="form-input" id="si-phone" placeholder="+639065938569">
+            </div>
+            <div class="form-group">
+              <label class="form-label">Email Address</label>
+              <input type="text" class="form-input" id="si-email" placeholder="hello@lootly.sg">
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label" style="display:flex;align-items:center;gap:6px">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="#25D166"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 0 1-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 0 1-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 0 1 2.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0 0 12.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 0 0 5.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 0 0-3.48-8.413z"/></svg>
+                WhatsApp Number
+              </label>
+              <input type="text" class="form-input" id="si-whatsapp" placeholder="+639065938569">
+              <div class="form-hint">Include country code e.g. +63...</div>
+            </div>
+            <div class="form-group">
+              <label class="form-label" style="display:flex;align-items:center;gap:6px">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="#7D56BF"><path d="M11.398.002C8.555-.028 3.01.676 1.09 6.254c-.857 2.634-.951 5.32.104 7.852C2.532 17.29 5.246 19.754 7.5 21.358l.028.02v2.445c0 .285.346.432.546.226l2.273-2.427c.671.073 1.35.109 2.028.101 2.137-.024 4.35-.55 6.025-1.728 3.765-2.667 4.195-7.038 3.73-10.32C21.52 4.54 17.894.065 11.398.002zm4.902 15.087c-.547.598-1.27 1.04-2.047 1.157-.118.018-.231.025-.341.025-.458 0-.883-.145-1.276-.349-.93-.48-1.787-1.105-2.582-1.804a18.605 18.605 0 0 1-2.063-2.177c-.618-.797-1.17-1.65-1.537-2.611-.264-.691-.343-1.408-.035-2.09.2-.44.527-.784.909-1.052.326-.228.676-.36 1.073-.36.149 0 .3.014.444.048.358.083.641.301.847.596.284.405.548.823.799 1.246.157.263.295.538.464.794.217.329.16.683-.084.969-.117.137-.254.256-.387.376-.135.122-.277.237-.4.368-.134.142-.154.314-.08.484.26.599.646 1.104 1.094 1.565.504.52 1.065.969 1.694 1.324.234.132.477.25.75.207.2-.031.356-.18.498-.324.14-.143.273-.293.413-.434.267-.272.58-.356.938-.22.351.133.693.28 1.035.426.342.146.68.299.997.487.384.227.477.623.258 1.019l-.001-.001z"/></svg>
+                Viber Number
+              </label>
+              <input type="text" class="form-input" id="si-viber" placeholder="+639065938569">
+              <div class="form-hint">Include country code e.g. +63...</div>
+            </div>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Opening Hours — Weekdays</label>
+            <input type="text" class="form-input" id="si-hours-weekday" placeholder="Mon–Sat: 10am–8pm">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Opening Hours — Weekend / Other</label>
+            <input type="text" class="form-input" id="si-hours-weekend" placeholder="Sun: 11am–6pm">
+          </div>
+          <button class="btn btn-red" onclick="saveStoreInfo()">
+            <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 14 14"><path d="M2 8l3 3 7-7"/></svg>
+            Save Store Info
+          </button>
+          <div class="form-hint" style="margin-top:8px">Changes sync to Firebase and appear live across all pages immediately.</div>
+        </div>
+
+        <!-- SOCIAL CARD -->
+        <div style="background:var(--card);border:1px solid var(--border);border-radius:12px;padding:28px;max-width:560px">
+          <div style="font-size:15px;font-weight:700;color:var(--white);margin-bottom:4px">Social Media</div>
+          <div style="font-size:13px;color:var(--muted);margin-bottom:24px">Add your social media links — they will appear in the footer and on the Contact page.</div>
+
+          <!-- Instagram -->
+          <div class="form-group">
+            <label class="form-label" style="display:flex;align-items:center;gap:8px">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="2" width="20" height="20" rx="5"/><circle cx="12" cy="12" r="5"/><circle cx="17.5" cy="6.5" r="1.5" fill="currentColor" stroke="none"/></svg>
+              Instagram URL
+            </label>
+            <div style="display:flex;gap:8px">
+              <input type="text" class="form-input" id="ig-url-input" placeholder="https://www.instagram.com/yourhandle">
+              <button class="btn btn-dark" onclick="saveInstagram()">Save</button>
+            </div>
+            <div class="form-hint">Leave blank to hide everywhere.</div>
+          </div>
+          <div id="ig-preview" style="display:none;margin-bottom:20px">
+            <a id="ig-preview-link" href="#" target="_blank" rel="noopener" style="display:inline-flex;align-items:center;gap:6px;font-size:13px;color:#E1306C;text-decoration:none;font-weight:600">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="2" width="20" height="20" rx="5"/><circle cx="12" cy="12" r="5"/><circle cx="17.5" cy="6.5" r="1.5" fill="currentColor" stroke="none"/></svg>
+              Open Instagram ↗
+            </a>
+          </div>
+
+          <div style="height:1px;background:var(--border);margin-bottom:20px"></div>
+
+          <!-- TikTok -->
+          <div class="form-group">
+            <label class="form-label" style="display:flex;align-items:center;gap:8px">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M19.59 6.69a4.83 4.83 0 0 1-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 0 1-2.88 2.5 2.89 2.89 0 0 1-2.89-2.89 2.89 2.89 0 0 1 2.89-2.89c.28 0 .54.04.79.1V9.01a6.33 6.33 0 0 0-.79-.05 6.34 6.34 0 0 0-6.34 6.34 6.34 6.34 0 0 0 6.34 6.34 6.34 6.34 0 0 0 6.33-6.34V8.69a8.18 8.18 0 0 0 4.78 1.52V6.75a4.85 4.85 0 0 1-1.01-.06z"/></svg>
+              TikTok URL
+            </label>
+            <div style="display:flex;gap:8px">
+              <input type="text" class="form-input" id="tt-url-input" placeholder="https://www.tiktok.com/@yourhandle">
+              <button class="btn btn-dark" onclick="saveTikTok()">Save</button>
+            </div>
+            <div class="form-hint">Leave blank to hide everywhere.</div>
+          </div>
+          <div id="tt-preview" style="display:none;margin-bottom:20px">
+            <a id="tt-preview-link" href="#" target="_blank" rel="noopener" style="display:inline-flex;align-items:center;gap:6px;font-size:13px;color:#fff;text-decoration:none;font-weight:600">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor"><path d="M19.59 6.69a4.83 4.83 0 0 1-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 0 1-2.88 2.5 2.89 2.89 0 0 1-2.89-2.89 2.89 2.89 0 0 1 2.89-2.89c.28 0 .54.04.79.1V9.01a6.33 6.33 0 0 0-.79-.05 6.34 6.34 0 0 0-6.34 6.34 6.34 6.34 0 0 0 6.34 6.34 6.34 6.34 0 0 0 6.33-6.34V8.69a8.18 8.18 0 0 0 4.78 1.52V6.75a4.85 4.85 0 0 1-1.01-.06z"/></svg>
+              Open TikTok ↗
+            </a>
+          </div>
+
+          <div style="height:1px;background:var(--border);margin-bottom:20px"></div>
+
+          <!-- Facebook -->
+          <div class="form-group">
+            <label class="form-label" style="display:flex;align-items:center;gap:8px">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/></svg>
+              Facebook URL
+            </label>
+            <div style="display:flex;gap:8px">
+              <input type="text" class="form-input" id="fb-url-input" placeholder="https://www.facebook.com/yourpage">
+              <button class="btn btn-dark" onclick="saveFacebook()">Save</button>
+            </div>
+            <div class="form-hint">Leave blank to hide everywhere.</div>
+          </div>
+          <div id="fb-preview" style="display:none;margin-bottom:4px">
+            <a id="fb-preview-link" href="#" target="_blank" rel="noopener" style="display:inline-flex;align-items:center;gap:6px;font-size:13px;color:#1877F2;text-decoration:none;font-weight:600">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor"><path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/></svg>
+              Open Facebook ↗
+            </a>
+          </div>
+        </div>
+
+        <!-- SECURITY CARD -->
+        <div style="background:var(--card);border:1px solid var(--border);border-radius:12px;padding:28px;max-width:560px;margin-top:20px">
+          <div style="font-size:15px;font-weight:700;color:var(--white);margin-bottom:4px">Security</div>
+          <div style="font-size:13px;color:var(--muted);margin-bottom:20px">You are signed in via Google. Auto-locks after 30 minutes of inactivity.</div>
+          <div style="display:flex;align-items:center;gap:12px;padding:14px;background:rgba(255,255,255,0.03);border:1px solid var(--border);border-radius:10px;margin-bottom:20px">
+            <div style="width:36px;height:36px;border-radius:50%;background:var(--accent);display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0">👤</div>
+            <div>
+              <div style="font-size:13px;font-weight:600;color:var(--white)">lootly.enterprise@gmail.com</div>
+              <div style="font-size:11px;color:var(--muted);margin-top:2px">Authorized admin account</div>
+            </div>
+          </div>
+          <div style="display:flex;gap:10px;flex-wrap:wrap">
+            <button class="btn btn-danger" onclick="window.exitAdmin()">
+              <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 16 16"><path d="M10 3h3a1 1 0 0 1 1 1v8a1 1 0 0 1-1 1h-3M7 11l-4-4 4-4M3 7h8"/></svg>
+              Sign Out &amp; Exit
+            </button>
+          </div>
+          <div style="margin-top:16px;padding:12px 14px;background:rgba(255,255,255,0.03);border:1px solid var(--border);border-radius:8px">
+            <div style="font-size:11px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:var(--muted);margin-bottom:6px">How to Access Admin</div>
+            <div style="font-size:13px;color:var(--muted);line-height:1.7">Press <span style="background:var(--black);border:1px solid var(--border);border-radius:4px;padding:1px 8px;font-family:monospace;font-size:12px;color:var(--white)">A</span> <span style="background:var(--black);border:1px solid var(--border);border-radius:4px;padding:1px 8px;font-family:monospace;font-size:12px;color:var(--white)">D</span> <span style="background:var(--black);border:1px solid var(--border);border-radius:4px;padding:1px 8px;font-family:monospace;font-size:12px;color:var(--white)">M</span> in sequence on any page to open the Google login. Auto-locks after <strong style="color:var(--white)">30 minutes</strong> of inactivity.</div>
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+</div>
+
+<!-- ══ PRODUCT MODAL ══ -->
+<div class="modal-overlay" id="product-modal">
+  <div class="modal-box">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:24px">
+      <div class="modal-title" id="pm-title">ADD PRODUCT</div>
+      <button class="modal-close" onclick="closeModal('product-modal')">✕</button>
+    </div>
+    <input type="hidden" id="pm-id">
+    <div class="form-group"><label class="form-label">Product Name *</label><input type="text" class="form-input" id="pm-name" placeholder="e.g. 1:64 Toyota Supra GR"></div>
+    <div class="form-row">
+      <div class="form-group"><label class="form-label">Price (PHP ₱) *</label><input type="number" class="form-input" id="pm-price" placeholder="0.00" step="0.01" min="0"></div>
+      <div class="form-group"><label class="form-label">Category *</label><select class="form-select" id="pm-cat"><option value="">Select category…</option></select></div>
+    </div>
+    <div class="form-group"><label class="form-label">Description</label><textarea class="form-textarea" id="pm-desc" rows="3" placeholder="Describe this product…"></textarea></div>
+    <div class="form-group">
+      <label class="form-label">Product Images (up to 5 URLs)</label>
+      <div style="display:flex;flex-direction:column;gap:8px">
+        <div style="position:relative"><input type="text" class="form-input" id="pm-img1" placeholder="Image 1 URL (main image)"><span style="position:absolute;right:10px;top:50%;transform:translateY(-50%);font-size:10px;font-weight:700;color:var(--accent);letter-spacing:0.06em">MAIN</span></div>
+        <input type="text" class="form-input" id="pm-img2" placeholder="Image 2 URL (optional)">
+        <input type="text" class="form-input" id="pm-img3" placeholder="Image 3 URL (optional)">
+        <input type="text" class="form-input" id="pm-img4" placeholder="Image 4 URL (optional)">
+        <input type="text" class="form-input" id="pm-img5" placeholder="Image 5 URL (optional)">
+      </div>
+      <div class="form-hint">Paste image URLs for each angle/view. Image 1 is used as the main thumbnail. Leave extras blank.</div>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Product Video (optional)</label>
+      <input type="text" class="form-input" id="pm-video" placeholder="YouTube, TikTok, or direct .mp4 URL">
+      <div class="form-hint">Supports YouTube (youtube.com/watch, youtu.be), TikTok (tiktok.com), or a direct .mp4 link. Appears as a play button thumbnail alongside product images.</div>
+    </div>
+    <div class="form-group"><label class="form-label">Badge</label><select class="form-select" id="pm-badge"><option value="">None</option><option value="new">New</option><option value="sale">Sale</option><option value="hot">Hot</option></select></div>
+    <div class="form-group"><label class="form-label">Tags (comma-separated)</label><input type="text" class="form-input" id="pm-tags" placeholder="e.g. scale model, diecast, 1:64"></div>
+    <div class="form-group">
+      <label class="form-label">Status</label>
+      <div class="form-radio-group">
+        <label class="form-radio-label"><input type="radio" name="pm-status" value="draft" id="pm-draft"> Draft <span class="status-pill status-draft">Draft</span></label>
+        <label class="form-radio-label"><input type="radio" name="pm-status" value="published" id="pm-pub"> Published <span class="status-pill status-published">Live</span></label>
+      </div>
+      <div class="form-hint">Only Published products appear in the storefront</div>
+    </div>
+    <div style="display:flex;gap:10px;margin-top:24px">
+      <button class="btn btn-red" style="flex:1;justify-content:center" onclick="saveProduct()">Save Product</button>
+      <button class="btn btn-outline" onclick="closeModal('product-modal')">Cancel</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══ CATEGORY MODAL ══ -->
+<div class="modal-overlay" id="cat-modal">
+  <div class="modal-box" style="max-width:380px">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:24px">
+      <div class="modal-title">ADD CATEGORY</div>
+      <button class="modal-close" onclick="closeModal('cat-modal')">✕</button>
+    </div>
+    <div class="form-group"><label class="form-label">Category Name *</label><input type="text" class="form-input" id="cat-input" placeholder="e.g. Scale Models"></div>
+    <div style="display:flex;gap:10px;margin-top:20px">
+      <button class="btn btn-red" style="flex:1;justify-content:center" onclick="saveCat()">Save</button>
+      <button class="btn btn-outline" onclick="closeModal('cat-modal')">Cancel</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══ DELETE MODAL ══ -->
+<div class="modal-overlay" id="del-modal">
+  <div class="modal-box" style="max-width:360px;text-align:center">
+    <div style="font-size:48px;margin-bottom:16px">🗑️</div>
+    <div class="modal-title" style="font-size:24px;margin-bottom:8px">DELETE PRODUCT?</div>
+    <p style="font-size:14px;color:var(--muted);margin-bottom:28px">This action cannot be undone. The product will be permanently removed.</p>
+    <div style="display:flex;gap:10px">
+      <button class="btn btn-danger" style="flex:1;justify-content:center" onclick="confirmDelete()">Delete</button>
+      <button class="btn btn-outline" style="flex:1;justify-content:center" onclick="closeModal('del-modal')">Cancel</button>
+    </div>
+  </div>
+</div>
+
+<script type="module">
+// ══ FIREBASE SETUP ════════════════════════════
+import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js';
+import { getFirestore, collection, doc, getDocs, setDoc, deleteDoc, onSnapshot, getDoc }
+  from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js';
+import { getAuth, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged }
+  from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js';
+
+const firebaseConfig = {
+  apiKey: "AIzaSyDqpOMgSWtTd3pYSMn877ZHmQ8a378S8q8",
+  authDomain: "lootly-store.firebaseapp.com",
+  projectId: "lootly-store",
+  storageBucket: "lootly-store.firebasestorage.app",
+  messagingSenderId: "1073708866400",
+  appId: "1:1073708866400:web:299c980c64eb1d2df4dc05"
+};
+
+const app = initializeApp(firebaseConfig);
+const db   = getFirestore(app);
+const auth = getAuth(app);
+const googleProvider = new GoogleAuthProvider();
+
+// ── Firestore collection/doc refs ──
+const productsCol  = collection(db, 'products');
+const categoriesDoc = doc(db, 'store', 'categories');
+const settingsDoc   = doc(db, 'store', 'settings');
+
+// ══ STATE ═════════════════════════════════════
+let products   = [];
+let categories = [];
+let logoSrc    = '';
+let igUrl      = '';
+let ttUrl      = '';
+let fbUrl      = '';
+let deleteId   = null;
+
+// ══ HELPERS ═══════════════════════════════════
+window.uid = function() { return Math.random().toString(36).slice(2,10); }
+window.pub = function() { return products.filter(p => p.status === 'published'); }
+
+// ══ FIRESTORE SAVE FUNCTIONS ══════════════════
+
+async function saveProduct(data) {
+  await setDoc(doc(db, 'products', data.id), data);
+}
+async function deleteProduct(id) {
+  await deleteDoc(doc(db, 'products', id));
+}
+async function saveCategories() {
+  await setDoc(categoriesDoc, { list: categories });
+}
+async function saveSettings(patch) {
+  const snap = await getDoc(settingsDoc);
+  const current = snap.exists() ? snap.data() : {};
+  await setDoc(settingsDoc, { ...current, ...patch });
+}
+
+// ══ CACHE KEYS ════════════════════════════════
+const CACHE = {
+  products:   'lootly_cache_products',
+  categories: 'lootly_cache_categories',
+  settings:   'lootly_cache_settings',
+  seeded:     'lootly_seeded'
+};
+
+function cacheGet(key) {
+  try { const v = localStorage.getItem(key); return v ? JSON.parse(v) : null; } catch(e) { return null; }
+}
+function cacheSet(key, val) {
+  try { localStorage.setItem(key, JSON.stringify(val)); } catch(e) {}
+}
+
+// ── Apply cached data instantly before Firebase responds ──
+// Always define live getters first
+Object.defineProperty(window, 'products',   { get: ()=>products,   configurable: true, enumerable: true });
+Object.defineProperty(window, 'categories', { get: ()=>categories, configurable: true, enumerable: true });
+
+function applyCache() {
+  const cachedProducts   = cacheGet(CACHE.products);
+  const cachedCategories = cacheGet(CACHE.categories);
+  const cachedSettings   = cacheGet(CACHE.settings);
+
+  if (cachedProducts && cachedProducts.length) {
+    products = cachedProducts;
+    window.renderHome();
+    if (window.handleInitialURL) window.handleInitialURL();
+    showLoading(false); // hide loader immediately
+  }
+  if (cachedCategories && cachedCategories.length) {
+    categories = cachedCategories;
+  }
+  if (cachedSettings) {
+    if (cachedSettings.logoSrc)   { logoSrc = cachedSettings.logoSrc;   window.applyLogoUI(logoSrc); }
+    if (cachedSettings.igUrl)     { igUrl   = cachedSettings.igUrl;     window.applyInstagramUI(igUrl); }
+    if (cachedSettings.ttUrl)     { ttUrl   = cachedSettings.ttUrl;     window.applyTikTokUI(ttUrl); }
+    if (cachedSettings.fbUrl)     { fbUrl   = cachedSettings.fbUrl;     window.applyFacebookUI(fbUrl); }
+    if (cachedSettings.storeInfo) { window.applyStoreInfoUI(cachedSettings.storeInfo); }
+  }
+}
+
+// ══ SEED DATA (Fix C — only runs once ever, guarded by flag) ══
+async function seedIfNeeded() {
+  if (localStorage.getItem(CACHE.seeded)) return; // already seeded
+  const snap = await getDocs(productsCol);
+  if (!snap.empty) { localStorage.setItem(CACHE.seeded, '1'); return; }
+
+  const defaultCats = ['Scale Models','Action Figures','Diecast Cars','Collectibles','Board Games','Accessories'];
+  const defaultProducts = [
+    { id: uid(), name: '1:64 Nissan Skyline GT-R R34', price: 18.90, category: 'Diecast Cars', description: 'A highly detailed 1:64 diecast of the iconic R34 Skyline in midnight purple. Metal body, opening parts, rubber tires. A must-have for JDM collectors.', images: ['https://placehold.co/600x600/1a1a2e/aaaaff?text=R34+Front','https://placehold.co/600x600/1a1a2e/aaaaff?text=R34+Side','https://placehold.co/600x600/1a1a2e/aaaaff?text=R34+Rear','',''], badge: 'new', tags: '1:64,diecast,nissan,JDM', status: 'published', createdAt: Date.now()-86400000*5 },
+    { id: uid(), name: 'Gundam RX-78-2 MG 1/100', price: 68.00, category: 'Scale Models', description: 'Master Grade Gundam RX-78-2 model kit. Highly articulated with inner frame. 1/100 scale with full color-coded parts. For ages 15+.', images: ['https://placehold.co/600x600/0a1a0a/80ff80?text=Gundam+Front','https://placehold.co/600x600/0a1a0a/80ff80?text=Gundam+Side','','',''], badge: 'hot', tags: 'gundam,model kit,1:100,bandai', status: 'published', createdAt: Date.now()-86400000*4 },
+    { id: uid(), name: 'Hot Wheels Premium JDM Set', price: 42.00, category: 'Diecast Cars', description: 'Premium 5-car set featuring iconic Japanese domestic market legends. Real Riders rubber tires, detailed interiors, and premium packaging.', images: ['https://placehold.co/600x600/1a0a0a/ff8080?text=HW+JDM+Set','https://placehold.co/600x600/1a0a0a/ff8080?text=HW+Car+2','https://placehold.co/600x600/1a0a0a/ff8080?text=HW+Car+3','',''], badge: 'sale', tags: 'hot wheels,JDM,premium,set', status: 'published', createdAt: Date.now()-86400000*3 },
+    { id: uid(), name: 'Tarmac Works 1:64 Porsche 911', price: 22.50, category: 'Diecast Cars', description: 'Tarmac Works collaboration diecast of the classic Porsche 911 GT3. Ultra-detailed livery with rubber tires and opening doors.', images: ['https://placehold.co/600x600/0a0a1a/8080ff?text=Porsche+911','https://placehold.co/600x600/0a0a1a/8080ff?text=Porsche+Side','','',''], badge: '', tags: 'tarmac,porsche,1:64,GT3', status: 'published', createdAt: Date.now()-86400000*2 },
+    { id: uid(), name: 'Marvel Legends Spider-Man 6"', price: 54.90, category: 'Action Figures', description: '6-inch Marvel Legends action figure with 30+ points of articulation. Includes web accessories, swap hands, and display stand.', images: ['https://placehold.co/600x600/1a0000/ff6666?text=Spider-Man','https://placehold.co/600x600/1a0000/ff6666?text=Spider+Pose+2','https://placehold.co/600x600/1a0000/ff6666?text=Accessories','',''], badge: 'new', tags: 'marvel,action figure,spider-man,hasbro', status: 'published', createdAt: Date.now()-86400000 },
+    { id: uid(), name: 'Warhammer 40K Starter Set', price: 88.00, category: 'Collectibles', description: 'The perfect entry point into the Warhammer 40,000 universe. Includes 13 push-fit miniatures, 48-page rulebook, and all accessories to get started.', images: ['https://placehold.co/600x600/10001a/cc88ff?text=Warhammer+Box','https://placehold.co/600x600/10001a/cc88ff?text=Miniatures','','',''], badge: '', tags: 'warhammer,miniatures,starter,games workshop', status: 'published', createdAt: Date.now()-3600000 },
+    { id: uid(), name: 'Upcoming Release (Draft)', price: 35.00, category: 'Scale Models', description: 'Coming soon — an exciting new arrival to our collection!', images: ['','','','',''], badge: 'new', tags: '', status: 'draft', createdAt: Date.now() },
+  ];
+  await Promise.all(defaultProducts.map(p => saveProduct(p)));
+  await setDoc(categoriesDoc, { list: defaultCats });
+  localStorage.setItem(CACHE.seeded, '1');
+}
+
+// ══ REAL-TIME LISTENERS ═══════════════════════
+function startListeners() {
+  // Products — live updates + cache write
+  onSnapshot(productsCol, snap => {
+    products = snap.docs.map(d => d.data());
+    products.sort((a,b) => b.createdAt - a.createdAt);
+    cacheSet(CACHE.products, products); // update cache
+    // Re-render whatever is currently visible (default to 'home' defensively)
+    const activePage = window.currentPage || 'home';
+    if (activePage === 'home')    window.renderHome();
+    if (activePage === 'catalog') { window.renderCatalogCats(); window.renderCatalog(); }
+    if (activePage === 'admin')   { window.renderAdminProducts(); window.renderDash(); }
+  });
+
+  // Settings — live updates + cache write
+  onSnapshot(settingsDoc, snap => {
+    if (!snap.exists()) return;
+    const data = snap.data();
+    cacheSet(CACHE.settings, data); // update cache
+    if (data.logoSrc !== undefined && data.logoSrc !== logoSrc) {
+      logoSrc = data.logoSrc;
+      window.applyLogoUI(logoSrc);
+    }
+    if (data.igUrl !== undefined && data.igUrl !== igUrl) {
+      igUrl = data.igUrl;
+      window.applyInstagramUI(igUrl);
+    }
+    if (data.ttUrl !== undefined && data.ttUrl !== ttUrl) {
+      ttUrl = data.ttUrl;
+      window.applyTikTokUI(ttUrl);
+    }
+    if (data.fbUrl !== undefined && data.fbUrl !== fbUrl) {
+      fbUrl = data.fbUrl;
+      window.applyFacebookUI(fbUrl);
+    }
+    if (data.storeInfo) {
+      window.applyStoreInfoUI(data.storeInfo);
+    }
+  });
+
+  onSnapshot(categoriesDoc, snap => {
+    if (!snap.exists()) return;
+    categories = snap.data().list || [];
+    cacheSet(CACHE.categories, categories); // update cache
+    if (window.currentPage === 'admin') {
+      window.renderCats(); window.updateCatSelects();
+    }
+  });
+}
+
+// ══ LOGO ══════════════════════════════════════
+window.applyLogoUI = function(src) {
+  logoSrc = src;
+  ['nav-logo-img','admin-nav-logo-img'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) { el.src = src||''; el.style.display = src ? 'block' : 'none'; }
+  });
+  ['nav-logo-text','admin-nav-logo-text'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.style.display = src ? 'none' : '';
+  });
+  const fi = document.getElementById('footer-logo-img');
+  const ft = document.getElementById('footer-logo-text');
+  if (fi) { fi.src = src||''; fi.style.display = src ? 'block' : 'none'; }
+  if (ft) ft.style.display = src ? 'none' : '';
+  const prev = document.getElementById('logo-preview-img');
+  const wrap = document.getElementById('logo-preview-wrap');
+  const drop = document.getElementById('logo-drop-content');
+  if (prev) prev.src = src||'';
+  if (wrap) wrap.style.display = src ? 'flex' : 'none';
+  if (drop) drop.style.display = src ? 'none' : 'block';
+  const previewImg  = document.getElementById('settings-logo-preview-img');
+  const previewText = document.getElementById('settings-logo-preview-text');
+  if (previewImg)  { previewImg.src = src||''; previewImg.style.display = src ? 'block' : 'none'; }
+  if (previewText) previewText.style.display = src ? 'none' : '';
+}
+
+window.applyLogo = async function(src) {
+  window.applyLogoUI(src);
+  await saveSettings({ logoSrc: src });
+}
+
+window.handleLogoUpload = function(input) {
+  const file = input.files[0]; if (!file) return;
+  // Warn if file is too large for Firestore (1MB limit per doc)
+  if (file.size > 900000) {
+    showToast('⚠️', 'Image too large. Use a URL instead (max ~900KB for upload).');
+    return;
+  }
+  const r = new FileReader();
+  r.onload = async e => {
+    document.getElementById('logo-file-name').textContent = file.name;
+    await window.applyLogo(e.target.result);
+    showToast('🖼️','Logo updated!');
+  };
+  r.readAsDataURL(file);
+}
+
+window.applyLogoUrl = async function() {
+  const url = document.getElementById('logo-url-input').value.trim();
+  if (!url) { showToast('⚠️','Enter a URL first'); return; }
+  await window.applyLogo(url);
+  showToast('🖼️','Logo updated!');
+}
+
+window.removeLogo = async function() {
+  await window.applyLogo('');
+  document.getElementById('logo-url-input').value = '';
+  const lf = document.getElementById('logo-file'); if (lf) lf.value='';
+  showToast('✓','Logo removed');
+}
+
+// ══ INSTAGRAM ═════════════════════════════════
+window.applyInstagramUI = function(url) {
+  igUrl = url;
+  const contactItem = document.getElementById('contact-ig-item');
+  if (contactItem) contactItem.style.display = url ? '' : 'none';
+  document.querySelectorAll('.ig-link').forEach(el => {
+    el.href = url || '#';
+    el.style.display = url ? 'inline-flex' : 'none';
+  });
+  const inp = document.getElementById('ig-url-input');
+  if (inp) inp.value = url || '';
+  const preview     = document.getElementById('ig-preview');
+  const previewLink = document.getElementById('ig-preview-link');
+  if (preview) preview.style.display = url ? 'block' : 'none';
+  if (previewLink && url) previewLink.href = url;
+}
+
+window.applyInstagram = async function(url) {
+  window.applyInstagramUI(url);
+  await saveSettings({ igUrl: url });
+}
+
+window.saveInstagram = async function() {
+  const url = document.getElementById('ig-url-input').value.trim();
+  await window.applyInstagram(url);
+  showToast('📸', url ? 'Instagram link saved!' : 'Instagram link removed');
+}
+
+// ══ TIKTOK ════════════════════════════════════
+window.applyTikTokUI = function(url) {
+  ttUrl = url;
+  const contactItem = document.getElementById('contact-tt-item');
+  if (contactItem) contactItem.style.display = url ? '' : 'none';
+  document.querySelectorAll('.tt-link').forEach(el => {
+    el.href = url || '#';
+    el.style.display = url ? 'inline-flex' : 'none';
+  });
+  const inp = document.getElementById('tt-url-input');
+  if (inp) inp.value = url || '';
+  const preview     = document.getElementById('tt-preview');
+  const previewLink = document.getElementById('tt-preview-link');
+  if (preview) preview.style.display = url ? 'block' : 'none';
+  if (previewLink && url) previewLink.href = url;
+}
+
+window.applyTikTok = async function(url) {
+  window.applyTikTokUI(url);
+  await saveSettings({ ttUrl: url });
+}
+
+window.saveTikTok = async function() {
+  const url = document.getElementById('tt-url-input').value.trim();
+  await window.applyTikTok(url);
+  showToast('✓', url ? 'TikTok link saved!' : 'TikTok link removed');
+}
+
+// ══ FACEBOOK ══════════════════════════════════
+window.applyFacebookUI = function(url) {
+  fbUrl = url;
+  const contactItem = document.getElementById('contact-fb-item');
+  if (contactItem) contactItem.style.display = url ? '' : 'none';
+  document.querySelectorAll('.fb-link').forEach(el => {
+    el.href = url || '#';
+    el.style.display = url ? 'inline-flex' : 'none';
+  });
+  const inp = document.getElementById('fb-url-input');
+  if (inp) inp.value = url || '';
+  const preview     = document.getElementById('fb-preview');
+  const previewLink = document.getElementById('fb-preview-link');
+  if (preview) preview.style.display = url ? 'block' : 'none';
+  if (previewLink && url) previewLink.href = url;
+}
+
+window.applyFacebook = async function(url) {
+  window.applyFacebookUI(url);
+  await saveSettings({ fbUrl: url });
+}
+
+window.saveFacebook = async function() {
+  const url = document.getElementById('fb-url-input').value.trim();
+  await window.applyFacebook(url);
+  showToast('✓', url ? 'Facebook link saved!' : 'Facebook link removed');
+}
+
+// ══ STORE INFO ════════════════════════════════
+const DEFAULT_STORE_INFO = {
+  address:      'Level 4 Festival Mall, Filivest City, Alabang, Muntinlupa City',
+  phone:        '+639065938569',
+  email:        'hello@lootly.sg',
+  whatsapp:     '',
+  viber:        '',
+  hoursWeekday: 'Mon–Sat: 10am–8pm',
+  hoursWeekend: 'Sun: 11am–6pm'
+};
+
+// Helper: strip everything except digits and leading +
+function cleanNumber(n) { return n ? n.replace(/[^\d+]/g,'') : ''; }
+// Helper: digits only, no + (wa.me requires this format)
+function digitsOnly(n) { return cleanNumber(n).replace(/^\+/, ''); }
+function isMobileDevice() { return /iPhone|iPad|iPod|Android/i.test(navigator.userAgent); }
+
+// WhatsApp — official click-to-chat link. WhatsApp's own servers handle the
+// handoff into the app; this MUST be opened in the same tab/window, never
+// target="_blank", or the OS refuses to honor the app redirect.
+function waLink(num) {
+  return `https://wa.me/${digitsOnly(num)}`;
+}
+
+// Viber's viber://chat?number= deep link expects plain digits with the
+// country code, no leading + and no percent-encoding (confirmed against
+// Viber deep-link integration docs). Passing %2B<digits> (URL-encoded +)
+// is non-standard and causes Viber to reject the link as invalid/expired.
+function vbMobileLink(num) {
+  return `viber://chat?number=${digitsOnly(num)}`;
+}
+function vbDesktopLink(num) {
+  return `https://invite.viber.com/?g2=${digitsOnly(num)}`;
+}
+
+// Shared helper used by BOTH WhatsApp and Viber.
+// IMPORTANT: only set a plain href — do NOT also attach an onclick that
+// re-navigates via location.href. Doing both was firing two competing
+// navigation attempts for the same app-scheme link nearly simultaneously,
+// which is exactly what caused "link can't be opened" / "link no longer
+// available" on WhatsApp and Viber. A single, native, untouched href tap
+// is the only way both apps reliably accept the handoff.
+function wireAppLink(anchorEl, mobileUrl, desktopUrl) {
+  if (!anchorEl) return;
+  const targetUrl = isMobileDevice() ? mobileUrl : (desktopUrl || mobileUrl);
+  anchorEl.href = targetUrl;
+  anchorEl.onclick = null; // make sure no stale handler from a previous render lingers
+}
+
+window.applyStoreInfoUI = function(info) {
+  const i = { ...DEFAULT_STORE_INFO, ...info };
+  window._lastStoreInfo = i; // always keep the freshest merged info available immediately
+
+  // Contact page
+  const addr  = document.getElementById('ci-address');
+  const phone = document.getElementById('ci-phone');
+  const email = document.getElementById('ci-email');
+  const hours = document.getElementById('ci-hours');
+  if (addr)  addr.textContent  = i.address;
+  if (phone) phone.textContent = i.phone;
+  if (email) email.textContent = i.email;
+  if (hours) hours.innerHTML   = `${i.hoursWeekday}<br>${i.hoursWeekend}`;
+
+  // WhatsApp — same-tab navigation to wa.me, which itself hands off to the app
+  const waItem  = document.getElementById('contact-wa-item');
+  const waLink_ = document.getElementById('ci-wa-link');
+  if (waItem) waItem.style.display = i.whatsapp ? '' : 'none';
+  if (i.whatsapp) wireAppLink(waLink_, waLink(i.whatsapp));
+
+  // Viber — native scheme on mobile, web invite page on desktop
+  const vbItem  = document.getElementById('contact-vb-item');
+  const vbLink_ = document.getElementById('ci-vb-link');
+  if (vbItem) vbItem.style.display = i.viber ? '' : 'none';
+  if (i.viber) wireAppLink(vbLink_, vbMobileLink(i.viber), vbDesktopLink(i.viber));
+
+  // Home banner
+  const banner = document.getElementById('banner-info');
+  if (banner) banner.textContent = `${i.address} · ${i.hoursWeekday} · ${i.hoursWeekend}`;
+
+  // Footer
+  const footerInfo = document.getElementById('footer-store-info');
+  if (footerInfo) footerInfo.innerHTML = `${i.address}<br><br>${i.hoursWeekday}<br>${i.hoursWeekend}`;
+
+  // Product page enquiry box (if currently visible)
+  const prodAddr  = document.getElementById('prod-store-address');
+  const prodPhone = document.getElementById('prod-store-phone');
+  if (prodAddr)  prodAddr.textContent  = `Visit us at ${i.address}.`;
+  if (prodPhone) prodPhone.textContent = i.phone;
+
+  // Populate admin settings fields
+  const siAddr     = document.getElementById('si-address');
+  const siPhone    = document.getElementById('si-phone');
+  const siEmail    = document.getElementById('si-email');
+  const siWa       = document.getElementById('si-whatsapp');
+  const siVb       = document.getElementById('si-viber');
+  const siWeekday  = document.getElementById('si-hours-weekday');
+  const siWeekend  = document.getElementById('si-hours-weekend');
+  if (siAddr)    siAddr.value    = i.address;
+  if (siPhone)   siPhone.value   = i.phone;
+  if (siEmail)   siEmail.value   = i.email;
+  if (siWa)      siWa.value      = i.whatsapp || '';
+  if (siVb)      siVb.value      = i.viber    || '';
+  if (siWeekday) siWeekday.value = i.hoursWeekday;
+  if (siWeekend) siWeekend.value = i.hoursWeekend;
+}
+
+window.saveStoreInfo = async function() {
+  const info = {
+    address:      (document.getElementById('si-address').value.trim()       || DEFAULT_STORE_INFO.address),
+    phone:        (document.getElementById('si-phone').value.trim()         || DEFAULT_STORE_INFO.phone),
+    email:        (document.getElementById('si-email').value.trim()         || DEFAULT_STORE_INFO.email),
+    whatsapp:     document.getElementById('si-whatsapp').value.trim(),
+    viber:        document.getElementById('si-viber').value.trim(),
+    hoursWeekday: (document.getElementById('si-hours-weekday').value.trim() || DEFAULT_STORE_INFO.hoursWeekday),
+    hoursWeekend: (document.getElementById('si-hours-weekend').value.trim() || DEFAULT_STORE_INFO.hoursWeekend),
+  };
+  window.applyStoreInfoUI(info);
+  await saveSettings({ storeInfo: info });
+  showToast('✓', 'Store info saved!');
+}
+
+// ══ PRODUCT CRUD ══════════════════════════════
+window.saveProduct = async function() {
+  const name  = document.getElementById('pm-name').value.trim();
+  const price = parseFloat(document.getElementById('pm-price').value);
+  const cat   = document.getElementById('pm-cat').value;
+  if (!name)               { showToast('⚠️','Enter a product name'); return; }
+  if (isNaN(price)||price<0){ showToast('⚠️','Enter a valid price'); return; }
+  if (!cat)                { showToast('⚠️','Select a category'); return; }
+  const status = document.querySelector('input[name="pm-status"]:checked').value;
+  const id     = document.getElementById('pm-id').value;
+  const images = [1,2,3,4,5].map(i => document.getElementById('pm-img'+i).value.trim());
+  const video  = document.getElementById('pm-video').value.trim();
+  const data   = {
+    id: id || uid(),
+    name, price, category: cat,
+    description: document.getElementById('pm-desc').value.trim(),
+    images,
+    video: video || '',
+    badge: document.getElementById('pm-badge').value,
+    tags:  document.getElementById('pm-tags').value.trim(),
+    status,
+    createdAt: id ? (products.find(p=>p.id===id)||{}).createdAt || Date.now() : Date.now()
+  };
+  await saveProduct(data);
+  showToast('✓', id ? 'Product updated!' : 'Product added!');
+  closeModal('product-modal');
+}
+
+window.togglePub = async function(id) {
+  const p = products.find(x=>x.id===id); if (!p) return;
+  const updated = {...p, status: p.status==='published' ? 'draft' : 'published'};
+  await saveProduct(updated);
+  showToast('✓', updated.status==='published' ? 'Product published!' : 'Moved to draft');
+}
+
+window.confirmDelete = async function() {
+  const id = window._deleteId;
+  if (!id) return;
+  await deleteProduct(id);
+  window._deleteId = null;
+  closeModal('del-modal');
+  showToast('🗑️','Product deleted');
+}
+
+// ══ CATEGORIES ════════════════════════════════
+window.saveCat = async function() {
+  const n = document.getElementById('cat-input').value.trim();
+  if (!n) { showToast('⚠️','Enter a name'); return; }
+  if (categories.includes(n)) { showToast('⚠️','Already exists'); return; }
+  categories = [...categories, n];
+  await saveCategories();
+  closeModal('cat-modal');
+  showToast('✓','Category added!');
+}
+
+window.deleteCat = async function(name) {
+  if (products.some(p=>p.category===name)) { showToast('⚠️','Move products out of this category first'); return; }
+  categories = categories.filter(c=>c!==name);
+  await saveCategories();
+  showToast('🗑️','Category removed');
+}
+
+// ══ INIT ══════════════════════════════════════
+async function init() {
+  // ── Step 1: Apply cache IMMEDIATELY (no network wait) ──
+  applyCache();
+
+  // ── Step 2: Wire up Auth (Fix D — lazy, non-blocking) ──
+  if (window.initAuth) {
+    window.initAuth(auth, googleProvider, signInWithPopup, signOut, onAuthStateChanged);
+  }
+
+  // ── Step 3: Fetch from Firebase in background ──
+  try {
+    // Only show loader if we have no cached data
+    const hasCachedData = !!cacheGet(CACHE.products);
+    if (!hasCachedData) showLoading(true);
+
+    // Seed only if never done before (Fix C — skip on every visit)
+    await seedIfNeeded();
+
+    // Fetch settings, categories, products in parallel (faster than sequential)
+    const [settSnap, catSnap, prodSnap] = await Promise.all([
+      getDoc(settingsDoc),
+      getDoc(categoriesDoc),
+      getDocs(productsCol)
+    ]);
+
+    if (settSnap.exists()) {
+      const s = settSnap.data();
+      cacheSet(CACHE.settings, s);
+      if (s.logoSrc)   { logoSrc = s.logoSrc; window.applyLogoUI(logoSrc); }
+      if (s.igUrl)     { igUrl   = s.igUrl;   window.applyInstagramUI(igUrl); }
+      if (s.ttUrl)     { ttUrl   = s.ttUrl;   window.applyTikTokUI(ttUrl); }
+      if (s.fbUrl)     { fbUrl   = s.fbUrl;   window.applyFacebookUI(fbUrl); }
+      if (s.storeInfo) { window.applyStoreInfoUI(s.storeInfo); }
+    }
+    if (catSnap.exists()) {
+      categories = catSnap.data().list || [];
+      cacheSet(CACHE.categories, categories);
+    }
+
+    products = prodSnap.docs.map(d=>d.data()).sort((a,b)=>b.createdAt-a.createdAt);
+    cacheSet(CACHE.products, products);
+
+    // Start live listeners for real-time updates
+    startListeners();
+
+    // Re-render with fresh data.
+    // Defensive: if window.currentPage isn't bridged yet for any reason
+    // (script race condition), default to treating it as 'home' since
+    // that's always the initial page on first load.
+    const activePage = window.currentPage || 'home';
+    if (activePage === 'home')    window.renderHome();
+    if (activePage === 'catalog') { window.renderCatalogCats(); window.renderCatalog(); }
+    if (activePage === 'product') { /* product already rendered from URL */ }
+
+    if (!hasCachedData && window.handleInitialURL) window.handleInitialURL();
+
+  } catch(e) {
+    console.error('Firebase init error:', e);
+    // Don't show error if we have cached data — user still sees content
+    if (!cacheGet(CACHE.products)) {
+      showToast('⚠️', 'Could not connect to database');
+    }
+  }
+
+  showLoading(false);
+}
+
+function showLoading(on) {
+  document.getElementById('loading-screen').style.display = on ? 'flex' : 'none';
+}
+
+// Show a subtle sync indicator (not a full-screen blocker) when refreshing in background
+function showSyncBar(on) {
+  let bar = document.getElementById('sync-bar');
+  if (!bar) return;
+  bar.style.opacity = on ? '1' : '0';
+}
+
+// window.pub is already defined above as a live closure.
+// window.products and window.categories are exposed via Object.defineProperty
+// with configurable:true getters — no direct assignment needed.
+// Expose social URL getters for non-module access
+Object.defineProperty(window, 'ttUrl', { get: ()=>ttUrl, configurable: true });
+Object.defineProperty(window, 'fbUrl', { get: ()=>fbUrl, configurable: true });
+
+init();
+</script>
+
+<script>
+
+// ══ ROUTING ══════════════════════════════════
+let prevPage = 'home';
+let currentPage = 'home';
+let _catalogScrollY = 0; // save catalog scroll position
+
+// Bridge currentPage to window so the Firebase module (separate script scope)
+// can correctly check which page is active — this was the root cause of
+// products not showing on first load (the module always saw `undefined`).
+Object.defineProperty(window, 'currentPage', { get: () => currentPage, configurable: true });
+
+function showPage(page, opts={}) {
+  // Save catalog scroll before leaving
+  if (currentPage === 'catalog') {
+    _catalogScrollY = window.scrollY;
+  }
+
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.getElementById('page-'+page).classList.add('active');
+  currentPage = page;
+
+  ['home','catalog','about','contact'].forEach(p => {
+    const el = document.getElementById('nl-'+p);
+    if (el) el.classList.toggle('active', p===page);
+  });
+
+  if (page === 'home') {
+    window.scrollTo(0, 0);
+    renderHome();
+    // Pre-render catalog silently so it's ready for instant back navigation
+    if (!document.getElementById('catalog-grid').innerHTML) {
+      renderCatalogCats();
+      renderCatalog();
+      initCatalogFilters();
+    }
+  }
+
+  if (page === 'catalog') {
+    if (opts.restoreScroll && _catalogScrollY > 0) {
+      // Don't re-render — catalog DOM is already intact, just restore scroll
+      // iOS needs a slightly longer delay for the page switch to settle
+      const targetY = _catalogScrollY;
+      window.scrollTo(0, 0); // reset first
+      setTimeout(() => {
+        window.scrollTo({ top: targetY, behavior: 'instant' });
+        // Belt-and-suspenders: try again after images may have reflowed
+        setTimeout(() => window.scrollTo({ top: targetY, behavior: 'instant' }), 150);
+      }, 50);
+    } else {
+      // Fresh catalog visit — render and go to top
+      _catalogScrollY = 0;
+      renderCatalogCats();
+      renderCatalog();
+      initCatalogFilters();
+      window.scrollTo(0, 0);
+    }
+  }
+
+  if (page === 'about' || page === 'contact') { window.scrollTo(0, 0); }
+  if (page === 'product') { window.scrollTo(0, 0); }
+
+  // Update URL
+  if (page === 'product' && opts.productId) {
+    history.pushState({ page, productId: opts.productId, scrollY: _catalogScrollY }, '', `?product=${opts.productId}`);
+  } else if (page !== 'product') {
+    const base = window.location.pathname;
+    history.replaceState({ page }, '', page === 'home' ? base : `${base}?page=${page}`);
+  }
+}
+function enterAdmin() {
+  document.getElementById('storefront-nav').style.display='none';
+  document.getElementById('mobile-menu').classList.remove('open');
+  document.getElementById('admin-nav').style.display='flex';
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.getElementById('page-admin').classList.add('active');
+  currentPage='admin';
+  renderDash(); renderAdminProducts(); renderCats(); updateCatSelects();
+}
+function exitAdmin() {
+  document.getElementById('storefront-nav').style.display='flex';
+  document.getElementById('admin-nav').style.display='none';
+  showPage('home');
+}
+
+// helper: get first valid image from product
+function getMainImg(p) {
+  const imgs = p.images || (p.image ? [p.image] : []);
+  return imgs.find(i=>i&&i.trim()) || `https://placehold.co/400x400/f0f0f2/aaa?text=${encodeURIComponent(p.name.split(' ').slice(0,3).join('+'))}`;
+}
+function getImages(p) {
+  const imgs = p.images || (p.image ? [p.image] : []);
+  return imgs.filter(i=>i&&i.trim());
+}
+
+// ══ PRODUCT CARD ═════════════════════════════
+function makeCard(p) {
+  const img = getMainImg(p);
+  const badge = p.badge ? `<span class="tag-badge tag-${p.badge}">${p.badge.toUpperCase()}</span>` : '';
+  return `<a class="product-card" href="?product=${p.id}" onclick="event.preventDefault(); openProduct('${p.id}')" data-product-id="${p.id}">
+    <div class="product-card-img">
+      <img src="${img}" alt="${p.name}" loading="lazy">
+      <div class="product-card-img-overlay"></div>
+      ${badge ? `<div class="product-card-badges">${badge}</div>` : ''}
+    </div>
+    <div class="product-card-body">
+      <div class="product-card-cat">${p.category}</div>
+      <div class="product-card-name">${p.name}</div>
+      <div class="product-card-price">₱${parseFloat(p.price).toFixed(2)}</div>
+    </div>
+  </a>`;
+}
+
+// ══ HOME ═════════════════════════════════════
+function renderHome() {
+  document.getElementById('home-grid').innerHTML = window.pub().slice(0,8).map(makeCard).join('');
+}
+window.renderHome = renderHome;
+
+// ══ CATALOG ══════════════════════════════════
+// ══ CATALOG ══════════════════════════════════
+const BRANDS = [
+  'Hobby Japan', 'Hot Wheels', 'Inno', 'Matchbox', 'MiniGT',
+  'Motorhelix', 'Poprace', 'Solido', 'Tarmac Works', 'TimeMicro',
+  'Tomica', 'TomyTec', 'Trends Hobby'
+];
+
+let activeCat        = 'all';
+let catSearch        = '';
+let activeBrands     = new Set(); // checked brand names
+let filterAccessories = false;
+
+function renderBrandFilters() {
+  const list = document.getElementById('brand-filter-list');
+  if (!list) return;
+  list.innerHTML = BRANDS.map(b => {
+    const safeId = 'brand-' + b.replace(/[^a-zA-Z0-9]/g,'_');
+    return `<div class="filter-check-item">
+      <input type="checkbox" id="${safeId}" data-brand="${b}" ${activeBrands.has(b) ? 'checked' : ''}>
+      <label for="${safeId}">${b}</label>
+    </div>`;
+  }).join('');
+
+  // Attach change listeners after DOM is built
+  list.querySelectorAll('input[type="checkbox"]').forEach(cb => {
+    cb.addEventListener('change', () => toggleBrand(cb.dataset.brand));
+  });
+}
+
+function toggleBrand(brand) {
+  if (activeBrands.has(brand)) activeBrands.delete(brand);
+  else activeBrands.add(brand);
+  // Don't re-render checkboxes — just update state and catalog
+  updateFilterUI();
+  renderCatalog();
+}
+
+function applyFilters() {
+  // Read accessories checkbox state
+  filterAccessories = document.getElementById('filter-accessories')?.checked || false;
+  updateFilterUI();
+  renderCatalog();
+}
+
+function updateFilterUI() {
+  const total = activeBrands.size + (filterAccessories ? 1 : 0);
+  // "Clear all" button
+  const clearBtn = document.getElementById('filter-clear-all');
+  if (clearBtn) clearBtn.style.display = total > 0 ? '' : 'none';
+  // Mobile badge count
+  const badge = document.getElementById('filter-active-count');
+  if (badge) { badge.textContent = total; badge.style.display = total > 0 ? '' : 'none'; }
+}
+
+function clearAllFilters() {
+  activeBrands.clear();
+  filterAccessories = false;
+  const acc = document.getElementById('filter-accessories');
+  if (acc) acc.checked = false;
+  renderBrandFilters();
+  updateFilterUI();
+  renderCatalog();
+}
+
+function toggleFilterSidebar() {
+  document.getElementById('filter-sidebar').classList.toggle('mobile-open');
+}
+
+function renderCatalogCats() {
+  const cats = [...new Set(window.pub().map(p=>p.category))];
+  document.getElementById('catalog-cats').innerHTML =
+    `<button class="cat-pill${activeCat==='all'?' active':''}" onclick="setCat('all')">All</button>` +
+    cats.map(c=>`<button class="cat-pill${activeCat===c?' active':''}" onclick="setCat('${c.replace(/'/g, '&#39;')}')">${c}</button>`).join('');
+}
+window.renderCatalogCats = renderCatalogCats;
+
+function setCat(c) { activeCat=c; renderCatalogCats(); renderCatalog(); }
+function searchCatalog(v) { catSearch=v.toLowerCase(); renderCatalog(); }
+
+function renderCatalog() {
+  let items = window.pub();
+
+  // Category pill filter
+  if (activeCat !== 'all') items = items.filter(p => p.category === activeCat);
+
+  // Text search
+  if (catSearch) items = items.filter(p =>
+    p.name.toLowerCase().includes(catSearch) ||
+    p.description.toLowerCase().includes(catSearch) ||
+    p.tags.toLowerCase().includes(catSearch)
+  );
+
+  // Accessories filter (category match)
+  if (filterAccessories) items = items.filter(p =>
+    p.category.toLowerCase() === 'accessories'
+  );
+
+  // Brand filter — keyword match in product name (case-insensitive)
+  if (activeBrands.size > 0) {
+    items = items.filter(p => {
+      const nameLower = p.name.toLowerCase();
+      return [...activeBrands].some(brand => nameLower.includes(brand.toLowerCase()));
+    });
+  }
+
+  const grid  = document.getElementById('catalog-grid');
+  const empty = document.getElementById('catalog-empty');
+  if (!items.length) { grid.innerHTML = ''; empty.classList.remove('hidden'); }
+  else { empty.classList.add('hidden'); grid.innerHTML = items.map(makeCard).join(''); }
+}
+window.renderCatalog = renderCatalog;
+
+// Init brand filter list when catalog page is shown
+function initCatalogFilters() {
+  renderBrandFilters();
+  updateFilterUI();
+  // Wire accessories checkbox
+  const accCb = document.getElementById('filter-accessories');
+  if (accCb) {
+    // Remove old listener if any, re-add fresh
+    accCb.replaceWith(accCb.cloneNode(true));
+    const freshCb = document.getElementById('filter-accessories');
+    if (freshCb) {
+      freshCb.checked = filterAccessories;
+      freshCb.addEventListener('change', () => applyFilters());
+    }
+  }
+}
+
+// ══ VIDEO HELPERS ════════════════════════════
+function getVideoType(url) {
+  if (!url) return null;
+  if (/youtube\.com\/watch|youtu\.be\/|youtube\.com\/shorts/.test(url)) return 'youtube';
+  if (/tiktok\.com/.test(url)) return 'tiktok';
+  if (/\.mp4|\.webm|\.ogg/.test(url)) return 'direct';
+  return null;
+}
+
+function getYouTubeId(url) {
+  const m = url.match(/(?:youtube\.com\/(?:watch\?v=|shorts\/)|youtu\.be\/)([a-zA-Z0-9_-]{11})/);
+  return m ? m[1] : null;
+}
+
+function getTikTokId(url) {
+  const m = url.match(/tiktok\.com\/@[^/]+\/video\/(\d+)/);
+  return m ? m[1] : null;
+}
+
+function buildVideoEmbed(url) {
+  const type = getVideoType(url);
+  if (type === 'youtube') {
+    const id = getYouTubeId(url);
+    if (!id) return null;
+    return `<div class="product-video-wrap">
+      <iframe src="https://www.youtube.com/embed/${id}?autoplay=1&rel=0" allow="autoplay; encrypted-media" allowfullscreen></iframe>
+    </div>`;
+  }
+  if (type === 'tiktok') {
+    const id = getTikTokId(url);
+    if (!id) return null;
+    return `<div class="product-video-wrap" style="aspect-ratio:9/16;max-width:340px;margin:0 auto 12px">
+      <iframe src="https://www.tiktok.com/embed/v2/${id}" allow="autoplay; encrypted-media" allowfullscreen></iframe>
+    </div>`;
+  }
+  if (type === 'direct') {
+    return `<div class="product-video-wrap">
+      <video src="${url}" controls playsinline autoplay></video>
+    </div>`;
+  }
+  return null;
+}
+
+// ══ PRODUCT PAGE ═════════════════════════════
+
+// Always resolve the freshest known store info (Firebase live data > localStorage cache > default)
+// This avoids the "stale placeholder on first load" bug — no more waiting for a second render pass.
+function getCurrentStoreInfo() {
+  const DEFAULTS = {
+    address: 'Level 4 Festival Mall, Filivest City, Alabang, Muntinlupa City',
+    phone:   '+639065938569'
+  };
+  let info = null;
+
+  // 1. Prefer live data already applied during this session
+  if (window._lastStoreInfo) info = window._lastStoreInfo;
+
+  // 2. Fall back to localStorage cache (written by Firebase module on every settings update)
+  if (!info) {
+    try {
+      const cached = JSON.parse(localStorage.getItem('lootly_cache_settings') || 'null');
+      if (cached && cached.storeInfo) info = cached.storeInfo;
+    } catch(e) {}
+  }
+
+  const merged = { ...DEFAULTS, ...(info || {}) };
+  return {
+    address: merged.address,
+    phone: merged.phone,
+    addressText: `Visit us at ${merged.address}.`
+  };
+}
+
+function openProduct(id) {
+  const _currentStoreInfo = getCurrentStoreInfo();
+  const p = window.products.find(x=>x.id===id); if (!p) return;
+  const imgs    = getImages(p);
+  const video   = p.video || '';
+  const hasVideo = !!getVideoType(video);
+  const mainImg = imgs[0] || `https://placehold.co/600x600/f0f0f2/aaa?text=${encodeURIComponent(p.name.split(' ').slice(0,3).join('+'))}`;
+  const tags    = p.tags ? p.tags.split(',').map(t=>t.trim()).filter(Boolean) : [];
+  const badge   = p.badge ? `<span class="tag-badge tag-${p.badge}" style="font-size:12px;padding:4px 10px">${p.badge.toUpperCase()}</span>` : '';
+
+  // Build thumbnails — video first (if any), then images
+  const totalSlots = (hasVideo ? 1 : 0) + imgs.length;
+  let thumbsHtml = '';
+  if (totalSlots > 1 || (hasVideo && imgs.length >= 1)) {
+    const thumbItems = [];
+    // Video thumb (slot 0 if video exists)
+    if (hasVideo) {
+      thumbItems.push(`<div class="product-thumb product-thumb-video active" id="thumb-v" onclick="switchMedia('video')" title="Watch video"></div>`);
+    }
+    // Image thumbs
+    imgs.forEach((img, i) => {
+      const isActive = !hasVideo && i === 0;
+      thumbItems.push(`<div class="product-thumb${isActive ? ' active' : ''}" id="thumb-img-${i}" onclick="switchMedia('img',${i})">
+        <img src="${img}" alt="View ${i+1}">
+      </div>`);
+    });
+    if (thumbItems.length > 1) {
+      thumbsHtml = `<div class="product-thumbs" id="prod-thumbs">${thumbItems.join('')}</div>`;
+    }
+  }
+
+  // Main display — video first by default if product has video
+  const mainDisplayHtml = hasVideo
+    ? buildVideoEmbed(video)
+    : `<div class="product-main-img" id="prod-main-img-wrap"><img src="${mainImg}" alt="${p.name}" id="prod-main-img"></div>`;
+
+  document.getElementById('product-page-content').innerHTML = `
+    <div>
+      <button class="back-btn" onclick="goBackToCatalog()">
+        <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 14 14"><path d="M10 7H2M5 3L1 7l4 4"/></svg>
+        Back to Catalog
+      </button>
+      <div id="prod-media-wrap">${mainDisplayHtml}</div>
+      ${thumbsHtml}
+    </div>
+    <div style="padding-top:8px">
+      <div class="product-breadcrumb">
+        <span class="breadcrumb-link" onclick="showPage('home')">Home</span>
+        <span style="color:#ccc">›</span>
+        <span class="breadcrumb-link" onclick="goBackToCatalog()">${p.category}</span>
+        <span style="color:#ccc">›</span>
+        <span style="color:var(--fg)">${p.name}</span>
+      </div>
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px">
+        <div class="product-cat-tag">${p.category}</div>${badge}
+      </div>
+      <h1 class="product-title">${p.name}</h1>
+      <div class="product-price">₱${parseFloat(p.price).toFixed(2)}</div>
+      <p class="product-desc">${p.description || 'No description available.'}</p>
+      ${tags.length ? `<div class="product-tags">${tags.map(t=>`<span class="product-tag">${t}</span>`).join('')}</div>` : ''}
+      <div class="product-cta">
+        <p class="product-store-info">
+          <strong>Available In-Store Only</strong><br>
+          <span id="prod-store-address">${_currentStoreInfo.addressText}</span><br>
+          Visit <a href="#" onclick="event.preventDefault(); showPage('contact');" style="color:var(--accent);text-decoration:underline;font-weight:600;cursor:pointer">Contact</a> page to check availability.
+        </p>
+        <button class="btn btn-red" style="width:100%;justify-content:center" onclick="showPage('contact')">
+          Enquire Now
+          <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 14 14"><path d="M2 7l10-5-5 12-2-5-3-2Z"/></svg>
+        </button>
+      </div>
+    </div>`;
+
+  // Store for media switcher
+  window._prodImgs  = imgs;
+  window._prodVideo = video;
+  showPage('product', { productId: id });
+}
+
+function goBackToCatalog() {
+  // Use history.back() so iOS swipe and button behave identically.
+  // If there's no history to go back to, fall back to showing catalog directly.
+  if (window.history.length > 1) {
+    history.back();
+  } else {
+    showPage('catalog', { restoreScroll: _catalogScrollY > 0 });
+  }
+}
+
+function switchMedia(type, imgIdx) {
+  const wrap = document.getElementById('prod-media-wrap');
+  if (!wrap) return;
+
+  // Deactivate all thumbs
+  document.querySelectorAll('.product-thumb').forEach(t => t.classList.remove('active'));
+
+  if (type === 'video') {
+    // Show video embed
+    const embedHtml = buildVideoEmbed(window._prodVideo || '');
+    if (embedHtml) wrap.innerHTML = embedHtml;
+    const vThumb = document.getElementById('thumb-v');
+    if (vThumb) vThumb.classList.add('active');
+  } else {
+    // Show image
+    const imgs = window._prodImgs || [];
+    const src  = imgs[imgIdx];
+    if (!src) return;
+    wrap.innerHTML = `<div class="product-main-img" id="prod-main-img-wrap"><img src="${src}" alt="Product image" id="prod-main-img"></div>`;
+    const iThumb = document.getElementById(`thumb-img-${imgIdx}`);
+    if (iThumb) iThumb.classList.add('active');
+  }
+}
+
+// Keep switchImg as alias for any legacy calls
+function switchImg(idx) { switchMedia('img', idx); }
+
+// ══ ADMIN TABS ════════════════════════════════
+function showTab(tab) {
+  document.querySelectorAll('.admin-tab').forEach(t=>t.classList.remove('active'));
+  document.getElementById('tab-'+tab).classList.add('active');
+  document.querySelectorAll('.sidebar-item').forEach(b=>b.classList.remove('active'));
+  const btn = document.getElementById('sb-'+tab);
+  if (btn) btn.classList.add('active');
+  if (tab==='products') { renderAdminProducts(); updateCatSelects(); }
+  if (tab==='categories') renderCats();
+  if (tab==='dashboard') renderDash();
+  if (tab==='settings') { refreshSettingsTab(); }
+}
+
+// ══ DASHBOARD ════════════════════════════════
+function renderDash() {
+  const prods = window.products;
+  const cats  = window.categories;
+  document.getElementById('s-total').textContent = prods.length;
+  document.getElementById('s-pub').textContent   = prods.filter(p=>p.status==='published').length;
+  document.getElementById('s-draft').textContent = prods.filter(p=>p.status==='draft').length;
+  document.getElementById('s-cats').textContent  = cats.length;
+  const recent = [...prods].sort((a,b)=>b.createdAt-a.createdAt).slice(0,5);
+  const el = document.getElementById('dash-recent');
+  if (!recent.length) { el.innerHTML='<div style="padding:20px;color:var(--muted);font-size:14px">No products yet.</div>'; return; }
+  el.innerHTML = `<table class="admin-table"><thead><tr><th>Name</th><th>Category</th><th>Price</th><th>Status</th></tr></thead><tbody>
+    ${recent.map(p=>`<tr>
+      <td style="font-weight:600;color:var(--white)">${p.name}</td>
+      <td style="color:var(--muted)">${p.category}</td>
+      <td style="color:var(--accent);font-weight:700">₱${parseFloat(p.price).toFixed(2)}</td>
+      <td><span class="status-pill ${p.status==='published'?'status-published':'status-draft'}">${p.status==='published'?'Live':'Draft'}</span></td>
+    </tr>`).join('')}
+  </tbody></table>`;
+}
+window.renderDash = renderDash;
+
+// ══ ADMIN PRODUCTS ════════════════════════════
+function renderAdminProducts(list=null) {
+  const items = list!==null ? list : window.products;
+  const tbody=document.getElementById('ap-tbody');
+  const empty=document.getElementById('ap-empty');
+  if (!items.length) { tbody.innerHTML=''; empty.classList.remove('hidden'); return; }
+  empty.classList.add('hidden');
+  tbody.innerHTML = items.map(p=>{
+    const img = getMainImg(p);
+    return `<tr>
+      <td>
+        <div style="display:flex;align-items:center;gap:12px">
+          <img src="${img}" alt="${p.name}" class="table-thumb">
+          <div>
+            <div style="font-weight:600;color:var(--white);font-size:14px">${p.name}</div>
+            <div style="font-size:11px;color:var(--muted);margin-top:2px">${p.tags?'#'+p.tags.split(',').map(t=>t.trim()).join(' #'):'—'}</div>
+          </div>
+        </div>
+      </td>
+      <td style="color:var(--muted)">${p.category}</td>
+      <td style="font-weight:700;color:var(--accent)">₱${parseFloat(p.price).toFixed(2)}</td>
+      <td><span class="status-pill ${p.status==='published'?'status-published':'status-draft'}">${p.status==='published'?'Live':'Draft'}</span></td>
+      <td>
+        <div class="table-actions">
+          <button class="tbl-btn" onclick="openProductModal('${p.id}')">Edit</button>
+          <button class="tbl-btn" onclick="togglePub('${p.id}')">${p.status==='published'?'Unpublish':'Publish'}</button>
+          <button class="tbl-btn danger" onclick="askDelete('${p.id}')">Delete</button>
+        </div>
+      </td>
+    </tr>`;
+  }).join('');
+}
+window.renderAdminProducts = renderAdminProducts;
+function filterAdmin() {
+  const s=document.getElementById('ap-search').value.toLowerCase();
+  const st=document.getElementById('ap-status').value;
+  const c=document.getElementById('ap-cat').value;
+  let list=window.products;
+  if (st!=='all') list=list.filter(p=>p.status===st);
+  if (c!=='all') list=list.filter(p=>p.category===c);
+  if (s) list=list.filter(p=>p.name.toLowerCase().includes(s)||p.tags.toLowerCase().includes(s)||p.category.toLowerCase().includes(s));
+  renderAdminProducts(list);
+}
+
+// ══ CATEGORIES ════════════════════════════════
+function renderCats() {
+  const cats  = window.categories;
+  const prods = window.products;
+  const el=document.getElementById('cats-list');
+  const empty=document.getElementById('cats-empty');
+  if (!cats.length) { el.innerHTML=''; empty.classList.remove('hidden'); return; }
+  empty.classList.add('hidden');
+  el.innerHTML = cats.map(c=>{
+    const cnt=prods.filter(p=>p.category===c).length;
+    return `<div style="background:var(--card);border:1px solid var(--border);border-radius:12px;padding:20px;display:flex;align-items:center;justify-content:space-between">
+      <div>
+        <div style="font-weight:600;color:var(--white);font-size:15px">${c}</div>
+        <div style="font-size:12px;color:var(--muted);margin-top:4px">${cnt} product${cnt!==1?'s':''}</div>
+      </div>
+      <button class="tbl-btn danger" onclick="deleteCat('${c.replace(/'/g, '&#39;')}')">Remove</button>
+    </div>`;
+  }).join('');
+}
+window.renderCats = renderCats;
+function updateCatSelects() {
+  const cats = window.categories;
+  const opts='<option value="">Select category…</option>'+cats.map(c=>`<option value="${c}">${c}</option>`).join('');
+  document.getElementById('pm-cat').innerHTML=opts;
+  const fo='<option value="all">All Categories</option>'+cats.map(c=>`<option value="${c}">${c}</option>`).join('');
+  document.getElementById('ap-cat').innerHTML=fo;
+}
+window.updateCatSelects = updateCatSelects;
+
+// ══ PRODUCT MODAL ═════════════════════════════
+function openProductModal(id) {
+  updateCatSelects();
+  if (id) {
+    const p=window.products.find(x=>x.id===id);
+    document.getElementById('pm-title').textContent='EDIT PRODUCT';
+    document.getElementById('pm-id').value=p.id;
+    document.getElementById('pm-name').value=p.name;
+    document.getElementById('pm-price').value=p.price;
+    document.getElementById('pm-cat').value=p.category;
+    document.getElementById('pm-desc').value=p.description;
+    const imgs = p.images || (p.image ? [p.image] : []);
+    for(let i=1;i<=5;i++) { document.getElementById('pm-img'+i).value = imgs[i-1]||''; }
+    document.getElementById('pm-video').value = p.video || '';
+    document.getElementById('pm-badge').value=p.badge||'';
+    document.getElementById('pm-tags').value=p.tags;
+    document.getElementById(p.status==='published'?'pm-pub':'pm-draft').checked=true;
+  } else {
+    document.getElementById('pm-title').textContent='ADD PRODUCT';
+    document.getElementById('pm-id').value='';
+    ['pm-name','pm-price','pm-desc','pm-tags'].forEach(id=>{ document.getElementById(id).value=''; });
+    for(let i=1;i<=5;i++) { document.getElementById('pm-img'+i).value=''; }
+    document.getElementById('pm-video').value = '';
+    document.getElementById('pm-cat').value='';
+    document.getElementById('pm-badge').value='';
+    document.getElementById('pm-draft').checked=true;
+  }
+  openModal('product-modal');
+}
+// saveProduct, saveCat, deleteCat, confirmDelete, saveInstagram
+// are all defined in the Firebase module above as window.* functions.
+// These stubs ensure onclick handlers work from non-module context.
+
+// ══ CATEGORY MODAL ════════════════════════════
+function openCatModal() { document.getElementById('cat-input').value=''; openModal('cat-modal'); }
+
+// ══ DELETE ════════════════════════════════════
+function askDelete(id) { window._deleteId = id; openModal('del-modal'); }
+
+// ══ MODALS ════════════════════════════════════
+function openModal(id) { document.getElementById(id).classList.add('open'); document.body.style.overflow='hidden'; }
+function closeModal(id) { document.getElementById(id).classList.remove('open'); document.body.style.overflow=''; }
+['product-modal','cat-modal','del-modal'].forEach(id=>{
+  document.getElementById(id).addEventListener('click', function(e){ if(e.target===this) closeModal(id); });
+});
+
+// ══ TOAST ════════════════════════════════════
+let toastT;
+function showToast(icon, msg) {
+  const el=document.getElementById('toast');
+  document.getElementById('toast-icon').textContent=icon;
+  document.getElementById('toast-msg').textContent=msg;
+  el.classList.add('show'); clearTimeout(toastT);
+  toastT=setTimeout(()=>el.classList.remove('show'),3000);
+}
+
+// ══ MOBILE ════════════════════════════════════
+function toggleMobile() { document.getElementById('mobile-menu').classList.toggle('open'); }
+
+// ══ CONTACT FORM ══════════════════════════════
+async function submitContactForm() {
+  const name    = document.getElementById('cf-name').value.trim();
+  const email   = document.getElementById('cf-email').value.trim();
+  const subject = document.getElementById('cf-subject').value.trim();
+  const message = document.getElementById('cf-message').value.trim();
+  const errEl     = document.getElementById('cf-error');
+  const successEl = document.getElementById('cf-success');
+  const btn       = document.getElementById('cf-submit');
+
+  // Reset states
+  errEl.style.display     = 'none';
+  successEl.style.display = 'none';
+
+  // Validate
+  if (!name) { errEl.textContent = 'Please enter your name.'; errEl.style.display = 'block'; return; }
+  if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+    errEl.textContent = 'Please enter a valid email address.'; errEl.style.display = 'block'; return;
+  }
+  if (!message) { errEl.textContent = 'Please enter a message.'; errEl.style.display = 'block'; return; }
+
+  // Loading state
+  btn.disabled = true;
+  btn.innerHTML = `<svg class="spin" width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="2"><path d="M7 1v2M7 11v2M1 7h2M11 7h2M2.93 2.93l1.41 1.41M9.66 9.66l1.41 1.41M2.93 11.07l1.41-1.41M9.66 4.34l1.41-1.41"/></svg> Sending…`;
+
+  const templateParams = {
+    from_name:  name,
+    from_email: email,
+    subject:    subject || 'Message from Lootly contact form',
+    message:    message,
+    reply_to:   email,
+  };
+
+  try {
+    // Send both emails in parallel
+    await Promise.all([
+      // Template 1 — notification to lootly.enterprise@gmail.com
+      emailjs.send('service_kp3kf7g', 'template_x93efth', templateParams),
+      // Template 2 — confirmation auto-reply to the visitor
+      emailjs.send('service_kp3kf7g', 'template_61ykqwd', templateParams),
+    ]);
+
+    // Success
+    successEl.style.display = 'block';
+    ['cf-name','cf-email','cf-subject','cf-message'].forEach(id => {
+      const el = document.getElementById(id);
+      if (el) el.value = '';
+    });
+    showToast('✉️', 'Message sent!');
+  } catch(e) {
+    console.error('EmailJS error:', e);
+    errEl.textContent = 'Failed to send message. Please try again or contact us directly.';
+    errEl.style.display = 'block';
+  }
+
+  // Reset button
+  btn.disabled = false;
+  btn.innerHTML = `Send Message <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 14 14"><path d="M2 7l10-5-5 12-2-5-3-2Z"/></svg>`;
+}
+
+// Settings tab refresh
+function refreshSettingsTab() {
+  window.applyLogoUI(window.logoSrc);
+  window.applyInstagramUI(window.igUrl);
+  if (window.applyTikTokUI)   window.applyTikTokUI(window.ttUrl || '');
+  if (window.applyFacebookUI) window.applyFacebookUI(window.fbUrl || '');
+}
+
+// ══ URL ROUTING ═══════════════════════════════
+// Handle ?product=ID on page load (direct link / new tab)
+function handleInitialURL() {
+  const params = new URLSearchParams(window.location.search);
+  const productId = params.get('product');
+  if (productId) {
+    const tryOpen = () => {
+      if (window.products && window.products.length > 0) {
+        renderCatalogCats(); renderCatalog();
+        openProduct(productId);
+      } else {
+        setTimeout(tryOpen, 200);
+      }
+    };
+    tryOpen();
+  }
+}
+window.handleInitialURL = handleInitialURL;
+window.openProduct = openProduct;
+
+// Browser back/forward button + iOS swipe-back support
+window.addEventListener('popstate', (e) => {
+  const params = new URLSearchParams(window.location.search);
+  const productId = params.get('product');
+
+  if (productId) {
+    // Going forward to a product
+    openProduct(productId);
+  } else {
+    // Going back from product — restore saved scroll from history state
+    if (e.state && typeof e.state.scrollY === 'number') {
+      _catalogScrollY = e.state.scrollY;
+    }
+    showPage('catalog', { restoreScroll: _catalogScrollY > 0 });
+  }
+});
+
+// Note: window._lastStoreInfo is now set directly inside applyStoreInfoUI
+// (in the Firebase module) so it's always fresh from the very first render —
+// no wrapper needed here anymore.
+
+</script>
+<!-- ══ SYNC BAR (subtle indicator when refreshing from cache) ══ -->
+<div id="sync-bar" style="position:fixed;top:0;left:0;right:0;height:3px;z-index:9998;opacity:0;transition:opacity 0.3s;background:linear-gradient(90deg,var(--accent),#ff8c00,var(--accent));background-size:200% 100%;animation:syncSlide 1.5s linear infinite"></div>
+<style>@keyframes syncSlide{0%{background-position:200% 0}100%{background-position:-200% 0}}</style>
+
+<!-- ══ LOADING SCREEN ══ -->
+<div id="loading-screen" style="position:fixed;inset:0;z-index:9990;background:var(--black);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px">
+  <div style="font-family:var(--font-display);font-size:48px;letter-spacing:0.04em;color:var(--white)">LOOTLY<span style="color:var(--accent)">.</span></div>
+  <div style="display:flex;gap:6px">
+    <div style="width:8px;height:8px;border-radius:50%;background:var(--accent);animation:pulse 1.2s ease-in-out infinite"></div>
+    <div style="width:8px;height:8px;border-radius:50%;background:var(--accent);animation:pulse 1.2s ease-in-out 0.2s infinite"></div>
+    <div style="width:8px;height:8px;border-radius:50%;background:var(--accent);animation:pulse 1.2s ease-in-out 0.4s infinite"></div>
+  </div>
+  <div style="font-size:13px;color:var(--muted);letter-spacing:0.1em;text-transform:uppercase">Loading…</div>
+</div>
+<style>
+@keyframes pulse { 0%,100%{opacity:0.2;transform:scale(0.8)} 50%{opacity:1;transform:scale(1)} }
+</style>
+
+<!-- ══ ADMIN LOGIN MODAL ══ -->
+<div class="modal-overlay" id="login-modal">
+  <div class="modal-box" style="max-width:400px;text-align:center">
+    <div id="login-idle">
+      <div style="font-size:48px;margin-bottom:16px">🔐</div>
+      <div class="modal-title" style="font-size:26px;margin-bottom:8px;text-align:center">ADMIN ACCESS</div>
+      <p style="font-size:13px;color:var(--muted);margin-bottom:28px;line-height:1.6">
+        Sign in with your authorized Google account to manage your store.
+      </p>
+      <button class="btn btn-red" style="width:100%;justify-content:center;gap:10px;font-size:14px" onclick="triggerGoogleSignIn()">
+        <svg width="18" height="18" viewBox="0 0 18 18" style="flex-shrink:0"><path fill="#fff" d="M17.64 9.2c0-.637-.057-1.251-.164-1.84H9v3.481h4.844c-.209 1.125-.843 2.078-1.796 2.717v2.258h2.908c1.702-1.567 2.684-3.874 2.684-6.615z"/><path fill="#fff" d="M9 18c2.43 0 4.467-.806 5.956-2.18l-2.908-2.259c-.806.54-1.837.86-3.048.86-2.344 0-4.328-1.584-5.036-3.711H.957v2.332A8.997 8.997 0 0 0 9 18z"/><path fill="#fff" d="M3.964 10.71A5.41 5.41 0 0 1 3.682 9c0-.593.102-1.17.282-1.71V4.958H.957A8.996 8.996 0 0 0 0 9c0 1.452.348 2.827.957 4.042l3.007-2.332z"/><path fill="#fff" d="M9 3.58c1.321 0 2.508.454 3.44 1.345l2.582-2.58C13.463.891 11.426 0 9 0A8.997 8.997 0 0 0 .957 4.958L3.964 6.29C4.672 4.163 6.656 3.58 9 3.58z"/></svg>
+        Sign in with Google
+      </button>
+      <div id="login-error" style="display:none;font-size:12px;color:#f87171;margin-top:16px;padding:10px 14px;background:rgba(248,113,113,0.08);border-radius:8px;border:1px solid rgba(248,113,113,0.2)">
+        <strong>Access Denied.</strong> This Google account is not authorized as admin.
+      </div>
+      <button class="btn-ghost" style="margin-top:16px;width:100%;justify-content:center;font-size:12px" onclick="closeModal('login-modal');resetLoginState()">Cancel</button>
+    </div>
+    <div id="login-loading" style="display:none">
+      <div style="font-size:36px;margin-bottom:16px">⏳</div>
+      <div style="font-size:15px;color:var(--white);font-weight:600;margin-bottom:8px">Signing in…</div>
+      <div style="font-size:13px;color:var(--muted)">Verifying your Google account</div>
+    </div>
+  </div>
+</div>
+
+<script>
+// ══ SECURITY — Google Auth ════════════════════
+const ADMIN_EMAIL = 'lootly.enterprise@gmail.com';
+const TIMEOUT_MS  = 30 * 60 * 1000;
+
+let _fbAuth = null, _googleProv = null, _signInWithPopup = null, _signOutFn = null;
+
+window.initAuth = function(auth, googleProvider, signInPopup, signOutFn, onAuthState) {
+  _fbAuth = auth; _googleProv = googleProvider;
+  _signInWithPopup = signInPopup; _signOutFn = signOutFn;
+  onAuthState(auth, user => {
+    if (user && user.email === ADMIN_EMAIL) {
+      closeModal('login-modal');
+      resetLoginState();
+      resetInactivityTimer();
+      enterAdmin();
+    } else if (user && user.email !== ADMIN_EMAIL) {
+      signOutFn(auth);
+      showLoginError();
+    }
+  });
+};
+
+function resetLoginState() {
+  document.getElementById('login-idle').style.display    = 'block';
+  document.getElementById('login-loading').style.display = 'none';
+  document.getElementById('login-error').style.display   = 'none';
+}
+function showLoginError() {
+  document.getElementById('login-idle').style.display    = 'block';
+  document.getElementById('login-loading').style.display = 'none';
+  document.getElementById('login-error').style.display   = 'block';
+}
+
+window.triggerGoogleSignIn = async function() {
+  if (!_fbAuth) { showToast('⚠️','Auth not ready, try again'); return; }
+  document.getElementById('login-idle').style.display    = 'none';
+  document.getElementById('login-loading').style.display = 'block';
+  try {
+    await _signInWithPopup(_fbAuth, _googleProv);
+  } catch(e) {
+    resetLoginState();
+    if (e.code !== 'auth/popup-closed-by-user') showToast('⚠️','Sign-in failed. Try again.');
+  }
+};
+
+// ── Secret key sequence A D M ──
+let keySeq = [];
+document.addEventListener('keydown', e => {
+  if (window.currentPage === 'admin') return;
+  if (['input','textarea','select'].includes(document.activeElement.tagName.toLowerCase())) return;
+  keySeq.push(e.key.toLowerCase());
+  if (keySeq.length > 3) keySeq.shift();
+  if (keySeq.join('') === 'adm') { keySeq = []; openLoginModal(); }
+});
+
+function openLoginModal() { resetLoginState(); openModal('login-modal'); }
+
+// ── Inactivity auto-logout ──
+let inactivityTimer;
+function resetInactivityTimer() {
+  clearTimeout(inactivityTimer);
+  inactivityTimer = setTimeout(async () => {
+    if (window.currentPage === 'admin') {
+      if (_signOutFn && _fbAuth) try { await _signOutFn(_fbAuth); } catch(e) {}
+      exitAdmin();
+      showToast('🔒','Signed out after 30 min inactivity');
+    }
+  }, TIMEOUT_MS);
+}
+['mousemove','keydown','click','scroll','touchstart'].forEach(ev => {
+  document.addEventListener(ev, () => { if (window.currentPage === 'admin') resetInactivityTimer(); }, { passive: true });
+});
+
+// ── Override exitAdmin to also sign out of Firebase ──
+const _origExitAdmin = exitAdmin;
+window.exitAdmin = async function() {
+  clearTimeout(inactivityTimer);
+  if (_signOutFn && _fbAuth) try { await _signOutFn(_fbAuth); } catch(e) {}
+  _origExitAdmin();
+};
+
+document.getElementById('login-modal').addEventListener('click', function(e) {
+  if (e.target === this) { closeModal('login-modal'); resetLoginState(); }
+});
+</script>
+
+<!--
+════════════════════════════════════════════════
+  FIRESTORE SECURITY RULES
+  Go to: Firebase Console → Firestore Database → Rules
+  Replace ALL existing rules with the block below,
+  then click Publish.
+════════════════════════════════════════════════
+
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    match /products/{productId} {
+      allow read: if true;
+      allow write: if request.auth != null
+                   && request.auth.token.email == 'lootly.enterprise@gmail.com';
+    }
+
+    match /store/{docId} {
+      allow read: if true;
+      allow write: if request.auth != null
+                   && request.auth.token.email == 'lootly.enterprise@gmail.com';
+    }
+  }
+}
+
+════════════════════════════════════════════════
+-->
+
+</body>
+</html>
