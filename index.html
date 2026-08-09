@@ -2093,31 +2093,29 @@ function openProduct(id) {
   const tags    = p.tags ? p.tags.split(',').map(t=>t.trim()).filter(Boolean) : [];
   const badge   = p.badge ? `<span class="tag-badge tag-${p.badge}" style="font-size:12px;padding:4px 10px">${p.badge.toUpperCase()}</span>` : '';
 
-  // Build thumbnails — video first (if any), then images
+  // Build thumbnails — images first, video thumb last
   const totalSlots = (hasVideo ? 1 : 0) + imgs.length;
   let thumbsHtml = '';
   if (totalSlots > 1 || (hasVideo && imgs.length >= 1)) {
     const thumbItems = [];
-    // Video thumb (slot 0 if video exists)
-    if (hasVideo) {
-      thumbItems.push(`<div class="product-thumb product-thumb-video active" id="thumb-v" onclick="switchMedia('video')" title="Watch video"></div>`);
-    }
-    // Image thumbs
+    // Image thumbs first
     imgs.forEach((img, i) => {
-      const isActive = !hasVideo && i === 0;
+      const isActive = i === 0; // first image is always active by default
       thumbItems.push(`<div class="product-thumb${isActive ? ' active' : ''}" id="thumb-img-${i}" onclick="switchMedia('img',${i})">
         <img src="${img}" alt="View ${i+1}">
       </div>`);
     });
+    // Video thumb last (never active by default)
+    if (hasVideo) {
+      thumbItems.push(`<div class="product-thumb product-thumb-video" id="thumb-v" onclick="switchMedia('video')" title="Watch video"></div>`);
+    }
     if (thumbItems.length > 1) {
       thumbsHtml = `<div class="product-thumbs" id="prod-thumbs">${thumbItems.join('')}</div>`;
     }
   }
 
-  // Main display — video first by default if product has video
-  const mainDisplayHtml = hasVideo
-    ? buildVideoEmbed(video)
-    : `<div class="product-main-img" id="prod-main-img-wrap"><img src="${mainImg}" alt="${p.name}" id="prod-main-img"></div>`;
+  // Main display — always show first image by default, video only when thumbnail is clicked
+  const mainDisplayHtml = `<div class="product-main-img" id="prod-main-img-wrap"><img src="${mainImg}" alt="${p.name}" id="prod-main-img"></div>`;
 
   document.getElementById('product-page-content').innerHTML = `
     <div>
