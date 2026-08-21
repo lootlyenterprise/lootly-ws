@@ -103,6 +103,7 @@ body::before {
 .tag-new { background: var(--accent); color: #fff; }
 .tag-sale { background: var(--gold); color: #000; }
 .tag-hot { background: #7c3aed; color: #fff; }
+.tag-preorder { background: #0ea5e9; color: #fff; }
 .product-card-body { padding: 14px 16px 18px; background: #fff; }
 .product-card-cat { font-size: 10px; font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase; color: var(--fg-muted); margin-bottom: 6px; }
 .product-card-name { font-size: 15px; font-weight: 600; color: var(--fg); line-height: 1.3; margin-bottom: 10px; }
@@ -577,10 +578,14 @@ footer { background: var(--dark); border-top: 1px solid var(--border); padding: 
 
         <!-- Accessories filter -->
         <div class="filter-section">
-          <div class="filter-section-label">Accessories</div>
+          <div class="filter-section-label">Quick Filters</div>
           <div class="filter-check-item">
             <input type="checkbox" id="filter-accessories">
             <label for="filter-accessories">Accessories</label>
+          </div>
+          <div class="filter-check-item">
+            <input type="checkbox" id="filter-preorder">
+            <label for="filter-preorder">Preorder</label>
           </div>
         </div>
 
@@ -1073,7 +1078,7 @@ footer { background: var(--dark); border-top: 1px solid var(--border); padding: 
     <div class="form-group"><label class="form-label">Product Name *</label><input type="text" class="form-input" id="pm-name" placeholder="e.g. 1:64 Toyota Supra GR"></div>
     <div class="form-row">
       <div class="form-group"><label class="form-label">Price (PHP ₱) *</label><input type="number" class="form-input" id="pm-price" placeholder="0.00" step="0.01" min="0"></div>
-      <div class="form-group"><label class="form-label">Category *</label><select class="form-select" id="pm-cat"><option value="">Select category…</option></select></div>
+      <div class="form-group"><label class="form-label">Category *</label><select class="form-select" id="pm-cat" onchange="autoBadgeFromCategory()"><option value="">Select category…</option></select></div>
     </div>
     <div class="form-group"><label class="form-label">Description</label><textarea class="form-textarea" id="pm-desc" rows="3" placeholder="Describe this product…"></textarea></div>
     <div class="form-group">
@@ -1092,7 +1097,7 @@ footer { background: var(--dark); border-top: 1px solid var(--border); padding: 
       <input type="text" class="form-input" id="pm-video" placeholder="YouTube, TikTok, or direct .mp4 URL">
       <div class="form-hint">Supports YouTube, TikTok, Facebook Reels, Instagram Reels, or a direct .mp4 link. Facebook and Instagram Reels show a tap-to-watch card (embedding blocked by those platforms). YouTube and TikTok embed directly.</div>
     </div>
-    <div class="form-group"><label class="form-label">Badge</label><select class="form-select" id="pm-badge"><option value="">None</option><option value="new">New</option><option value="sale">Sale</option><option value="hot">Hot</option></select></div>
+    <div class="form-group"><label class="form-label">Badge</label><select class="form-select" id="pm-badge"><option value="">None</option><option value="new">New</option><option value="sale">Sale</option><option value="hot">Hot</option><option value="preorder">Preorder</option></select></div>
     <div class="form-group"><label class="form-label">Tags (comma-separated)</label><input type="text" class="form-input" id="pm-tags" placeholder="e.g. scale model, diecast, 1:64"></div>
     <div class="form-group">
       <label class="form-label">Status</label>
@@ -1243,7 +1248,7 @@ async function seedIfNeeded() {
   const snap = await getDocs(productsCol);
   if (!snap.empty) { localStorage.setItem(CACHE.seeded, '1'); return; }
 
-  const defaultCats = ['Scale Models','Action Figures','Diecast Cars','Collectibles','Board Games','Accessories'];
+  const defaultCats = ['Scale Models','Action Figures','Diecast Cars','Collectibles','Board Games','Accessories','Preorder'];
   const defaultProducts = [
     { id: uid(), name: '1:64 Nissan Skyline GT-R R34', price: 18.90, category: 'Diecast Cars', description: 'A highly detailed 1:64 diecast of the iconic R34 Skyline in midnight purple. Metal body, opening parts, rubber tires. A must-have for JDM collectors.', images: ['https://placehold.co/600x600/1a1a2e/aaaaff?text=R34+Front','https://placehold.co/600x600/1a1a2e/aaaaff?text=R34+Side','https://placehold.co/600x600/1a1a2e/aaaaff?text=R34+Rear','',''], badge: 'new', tags: '1:64,diecast,nissan,JDM', status: 'published', createdAt: Date.now()-86400000*5 },
     { id: uid(), name: 'Gundam RX-78-2 MG 1/100', price: 68.00, category: 'Scale Models', description: 'Master Grade Gundam RX-78-2 model kit. Highly articulated with inner frame. 1/100 scale with full color-coded parts. For ages 15+.', images: ['https://placehold.co/600x600/0a1a0a/80ff80?text=Gundam+Front','https://placehold.co/600x600/0a1a0a/80ff80?text=Gundam+Side','','',''], badge: 'hot', tags: 'gundam,model kit,1:100,bandai', status: 'published', createdAt: Date.now()-86400000*4 },
@@ -1855,8 +1860,9 @@ const BRANDS = [
 
 let activeCat        = 'all';
 let catSearch        = '';
-let activeBrands     = new Set(); // checked brand names
+let activeBrands     = new Set();
 let filterAccessories = false;
+let filterPreorder    = false;
 
 function renderBrandFilters() {
   const list = document.getElementById('brand-filter-list');
@@ -1884,18 +1890,16 @@ function toggleBrand(brand) {
 }
 
 function applyFilters() {
-  // Read accessories checkbox state
   filterAccessories = document.getElementById('filter-accessories')?.checked || false;
+  filterPreorder    = document.getElementById('filter-preorder')?.checked    || false;
   updateFilterUI();
   renderCatalog();
 }
 
 function updateFilterUI() {
-  const total = activeBrands.size + (filterAccessories ? 1 : 0);
-  // "Clear all" button
+  const total = activeBrands.size + (filterAccessories ? 1 : 0) + (filterPreorder ? 1 : 0);
   const clearBtn = document.getElementById('filter-clear-all');
   if (clearBtn) clearBtn.style.display = total > 0 ? '' : 'none';
-  // Mobile badge count
   const badge = document.getElementById('filter-active-count');
   if (badge) { badge.textContent = total; badge.style.display = total > 0 ? '' : 'none'; }
 }
@@ -1903,8 +1907,11 @@ function updateFilterUI() {
 function clearAllFilters() {
   activeBrands.clear();
   filterAccessories = false;
+  filterPreorder    = false;
   const acc = document.getElementById('filter-accessories');
   if (acc) acc.checked = false;
+  const pre = document.getElementById('filter-preorder');
+  if (pre) pre.checked = false;
   renderBrandFilters();
   updateFilterUI();
   renderCatalog();
@@ -1938,16 +1945,17 @@ function renderCatalog() {
     p.tags.toLowerCase().includes(catSearch)
   );
 
-  // Accessories filter (category match)
-  if (filterAccessories) items = items.filter(p =>
-    p.category.toLowerCase() === 'accessories'
-  );
-
-  // Brand filter — keyword match in product name (case-insensitive)
-  if (activeBrands.size > 0) {
+  // Accessories + Preorder + Brand filters — OR logic (union)
+  const hasSidebarFilters = filterAccessories || filterPreorder || activeBrands.size > 0;
+  if (hasSidebarFilters) {
     items = items.filter(p => {
+      const cat = p.category.toLowerCase();
+      const matchesAccessories = filterAccessories && cat === 'accessories';
+      const matchesPreorder    = filterPreorder    && cat === 'preorder';
       const nameLower = p.name.toLowerCase();
-      return [...activeBrands].some(brand => nameLower.includes(brand.toLowerCase()));
+      const matchesBrand = activeBrands.size > 0 &&
+        [...activeBrands].some(brand => nameLower.includes(brand.toLowerCase()));
+      return matchesAccessories || matchesPreorder || matchesBrand;
     });
   }
 
@@ -1962,17 +1970,17 @@ window.renderCatalog = renderCatalog;
 function initCatalogFilters() {
   renderBrandFilters();
   updateFilterUI();
-  // Wire accessories checkbox
-  const accCb = document.getElementById('filter-accessories');
-  if (accCb) {
-    // Remove old listener if any, re-add fresh
-    accCb.replaceWith(accCb.cloneNode(true));
-    const freshCb = document.getElementById('filter-accessories');
-    if (freshCb) {
-      freshCb.checked = filterAccessories;
-      freshCb.addEventListener('change', () => applyFilters());
+  // Wire each quick-filter checkbox fresh (clone removes stale listeners)
+  ['filter-accessories', 'filter-preorder'].forEach(id => {
+    const cb = document.getElementById(id);
+    if (!cb) return;
+    cb.replaceWith(cb.cloneNode(true));
+    const fresh = document.getElementById(id);
+    if (fresh) {
+      fresh.checked = id === 'filter-accessories' ? filterAccessories : filterPreorder;
+      fresh.addEventListener('change', () => applyFilters());
     }
-  }
+  });
 }
 
 // ══ VIDEO HELPERS ════════════════════════════
@@ -2340,6 +2348,18 @@ function openProductModal(id) {
 
 // ══ CATEGORY MODAL ════════════════════════════
 function openCatModal() { document.getElementById('cat-input').value=''; openModal('cat-modal'); }
+
+// Auto-set badge when Preorder category is selected
+function autoBadgeFromCategory() {
+  const cat = document.getElementById('pm-cat').value;
+  const badge = document.getElementById('pm-badge');
+  if (cat === 'Preorder') {
+    badge.value = 'preorder';
+  } else if (badge.value === 'preorder') {
+    // Clear preorder badge if user switches away from Preorder category
+    badge.value = '';
+  }
+}
 
 // ══ DELETE ════════════════════════════════════
 function askDelete(id) { window._deleteId = id; openModal('del-modal'); }
